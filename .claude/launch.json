@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "studio",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "C:\\Users\\roshanm\\Downloads\\iDMS Studio\\studio",
+      "port": 5173,
+      "autoPort": false
+    }
+  ]
+}

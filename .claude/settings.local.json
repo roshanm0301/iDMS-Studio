@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(list\\(d.keys\\(\\)\\)\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:5173)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx kill-port *)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(node -e \"const rf = require\\('reactflow'\\); console.log\\(Object.keys\\(rf\\).filter\\(k => k.includes\\('Edge'\\) || k.includes\\('Node'\\) || k === 'Edge' || k === 'Node'\\)\\)\")",
+      "Bash(node -e \"const rf = require\\('reactflow'\\); console.log\\(['Handle','Position','MarkerType','Background','Controls','MiniMap'].map\\(k => k + ':' + \\(k in rf\\)\\)\\)\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":5173\")",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer",
+      "mcp__Claude_in_Chrome__javascript_tool",
+      "mcp__Claude_in_Chrome__browser_batch",
+      "mcp__Claude_in_Chrome__read_console_messages",
+      "Bash(npx vite *)",
+      "Bash(findstr :5173)",
+      "Bash(node -e ' *)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(timeout 8)",
+      "Bash(findstr \":5176\")"
+    ]
+  }
+}

@@ -1,0 +1,1548 @@
+{
+  "seed_version": "1.0.0",
+  "generated_on": "2026-04-28",
+  "domain": "automotive_dms",
+  "purpose": "Mock data for frontend-only IDMS Admin Studio prototype",
+  "studio_decisions": {
+    "top_level_experience": "unified_admin_studio",
+    "primary_context": "artifact_first",
+    "workspace_layout": "split_workspace",
+    "overlay_ux": "resolved_view_with_layer_badges_and_delta_preview",
+    "rule_builder": "guided_policy_condition_tree_json_preview",
+    "workflow_designer": "visual_state_machine_with_transition_policy_panel",
+    "publishing": "governed_release_package",
+    "simulation": "always_on_impact_panel_plus_pre_promotion_validation",
+    "ai_assistant": "out_of_scope"
+  },
+  "environments": [
+    "DEV",
+    "UAT",
+    "PRODUCTION"
+  ],
+  "layers": [
+    {
+      "code": "platform",
+      "label": "Platform",
+      "priority": 1,
+      "color_token": "layer.platform"
+    },
+    {
+      "code": "vertical",
+      "label": "Vertical",
+      "priority": 2,
+      "color_token": "layer.vertical"
+    },
+    {
+      "code": "tenant",
+      "label": "Tenant",
+      "priority": 3,
+      "color_token": "layer.tenant"
+    },
+    {
+      "code": "node",
+      "label": "Node",
+      "priority": 4,
+      "color_token": "layer.node"
+    },
+    {
+      "code": "role",
+      "label": "Role",
+      "priority": 5,
+      "color_token": "layer.role"
+    }
+  ],
+  "tenant": {
+    "tenant_id": "ten_bajaj_demo",
+    "tenant_name": "Bajaj Auto Demo",
+    "vertical": "automotive_dms",
+    "theme": {
+      "primaryColor": "#F97316",
+      "primaryHoverColor": "#EA580C",
+      "primaryLightColor": "#FFF7ED",
+      "secondaryColor": "#111827",
+      "logoUrl": "https://cdn.example.com/bajaj-logo.svg",
+      "faviconUrl": null,
+      "fontFamily": "Inter",
+      "borderRadius": "12px"
+    }
+  },
+  "nodes": [
+    {
+      "node_id": "node_pune_central",
+      "label": "Pune Central Branch",
+      "node_type": "branch",
+      "tenant_id": "ten_bajaj_demo"
+    },
+    {
+      "node_id": "node_mumbai_west",
+      "label": "Mumbai West Branch",
+      "node_type": "branch",
+      "tenant_id": "ten_bajaj_demo"
+    }
+  ],
+  "roles": [
+    {
+      "role_code": "OEM_ADMIN",
+      "role_name": "OEM Administrator",
+      "studio_access": "full"
+    },
+    {
+      "role_code": "DEALER_PRINCIPAL",
+      "role_name": "Dealer Principal",
+      "studio_access": "tenant_admin"
+    },
+    {
+      "role_code": "SALES_MANAGER",
+      "role_name": "Sales Manager",
+      "studio_access": "read_and_approve"
+    },
+    {
+      "role_code": "SALES_EXECUTIVE",
+      "role_name": "Sales Executive",
+      "studio_access": "none"
+    },
+    {
+      "role_code": "SERVICE_MANAGER",
+      "role_name": "Service Manager",
+      "studio_access": "module_read"
+    },
+    {
+      "role_code": "PARTS_MANAGER",
+      "role_name": "Parts Manager",
+      "studio_access": "module_read"
+    }
+  ],
+  "artifact_registry": [
+    {
+      "artifact_key": "entity.vehicle_order",
+      "artifact_type": "entity_schema",
+      "label": "Vehicle Order",
+      "status": "active_with_draft",
+      "module": "Sales",
+      "warnings": 2,
+      "layers": [
+        "platform",
+        "vertical",
+        "tenant",
+        "node",
+        "role"
+      ]
+    },
+    {
+      "artifact_key": "entity.vehicle_booking",
+      "artifact_type": "entity_schema",
+      "label": "Vehicle Booking",
+      "status": "active",
+      "module": "Sales",
+      "warnings": 0,
+      "layers": [
+        "platform",
+        "vertical",
+        "tenant"
+      ]
+    },
+    {
+      "artifact_key": "entity.service_job",
+      "artifact_type": "entity_schema",
+      "label": "Service Job",
+      "status": "active",
+      "module": "Service",
+      "warnings": 1,
+      "layers": [
+        "platform",
+        "vertical",
+        "tenant"
+      ]
+    },
+    {
+      "artifact_key": "entity.parts_inventory",
+      "artifact_type": "entity_schema",
+      "label": "Parts Inventory",
+      "status": "active",
+      "module": "Parts",
+      "warnings": 0,
+      "layers": [
+        "platform",
+        "vertical"
+      ]
+    },
+    {
+      "artifact_key": "workflow.vehicle_order",
+      "artifact_type": "workflow_definition",
+      "label": "Vehicle Order Workflow",
+      "status": "active_with_draft",
+      "module": "Sales",
+      "warnings": 1,
+      "layers": [
+        "platform",
+        "tenant"
+      ]
+    },
+    {
+      "artifact_key": "permission.vehicle_order",
+      "artifact_type": "permission_matrix",
+      "label": "Vehicle Order Permissions",
+      "status": "active_with_draft",
+      "module": "Sales",
+      "warnings": 1,
+      "layers": [
+        "tenant",
+        "role"
+      ]
+    }
+  ],
+  "attribute_catalog": [
+    {
+      "attribute_code": "customer_id",
+      "label": "Customer",
+      "field_type": "reference",
+      "domain": "platform",
+      "protected": true,
+      "reusable": true
+    },
+    {
+      "attribute_code": "total_amount",
+      "label": "Total Amount",
+      "field_type": "number",
+      "domain": "platform",
+      "protected": false,
+      "reusable": true
+    },
+    {
+      "attribute_code": "discount_pct",
+      "label": "Discount %",
+      "field_type": "number",
+      "domain": "platform",
+      "protected": false,
+      "reusable": true
+    },
+    {
+      "attribute_code": "vehicle_model",
+      "label": "Vehicle Model",
+      "field_type": "select",
+      "domain": "automotive",
+      "protected": false,
+      "reusable": true
+    },
+    {
+      "attribute_code": "registration_no",
+      "label": "Registration Number",
+      "field_type": "text",
+      "domain": "automotive",
+      "protected": false,
+      "reusable": true
+    },
+    {
+      "attribute_code": "vin",
+      "label": "VIN",
+      "field_type": "text",
+      "domain": "automotive",
+      "protected": false,
+      "reusable": true
+    },
+    {
+      "attribute_code": "gstin",
+      "label": "GSTIN",
+      "field_type": "text",
+      "domain": "india_tax",
+      "protected": false,
+      "reusable": true
+    },
+    {
+      "attribute_code": "bajaj_dealer_code",
+      "label": "Bajaj Dealer Code",
+      "field_type": "text",
+      "domain": "tenant",
+      "protected": false,
+      "reusable": false
+    },
+    {
+      "attribute_code": "cost_price",
+      "label": "Cost Price",
+      "field_type": "number",
+      "domain": "finance",
+      "protected": false,
+      "reusable": true
+    },
+    {
+      "attribute_code": "margin_pct",
+      "label": "Margin %",
+      "field_type": "number",
+      "domain": "finance",
+      "protected": false,
+      "reusable": true
+    }
+  ],
+  "entity_schemas": [
+    {
+      "artifact_key": "entity.vehicle_order",
+      "entity_type": "vehicle_order",
+      "label": "Vehicle Order",
+      "description": "Order for sale and delivery of a vehicle in an automotive dealer network.",
+      "status": "active_with_draft",
+      "scope_hash": "mock_scope_ten_bajaj_node_pune_role_sales_exec",
+      "fields": [
+        {
+          "stable_id": "fld.customer_id",
+          "name": "customer_id",
+          "label": "Customer",
+          "type": "reference",
+          "required": true,
+          "source_layer": "platform",
+          "protected": true,
+          "override_status": "inherited",
+          "references": "customer",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.total_amount",
+          "name": "total_amount",
+          "label": "Total Amount",
+          "type": "number",
+          "required": true,
+          "source_layer": "platform",
+          "protected": false,
+          "override_status": "inherited",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.discount_pct",
+          "name": "discount_pct",
+          "label": "Discount %",
+          "type": "number",
+          "required": false,
+          "source_layer": "platform",
+          "protected": false,
+          "override_status": "constrained_by_node",
+          "validation": {
+            "min": 0,
+            "max": 7
+          },
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.line_items",
+          "name": "line_items",
+          "label": "Line Items",
+          "type": "line_item_grid",
+          "required": true,
+          "source_layer": "platform",
+          "protected": false,
+          "override_status": "inherited",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.notes",
+          "name": "notes",
+          "label": "Notes",
+          "type": "textarea",
+          "required": false,
+          "source_layer": "platform",
+          "protected": false,
+          "override_status": "inherited",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.vehicle_model",
+          "name": "vehicle_model",
+          "label": "Vehicle Model",
+          "type": "select",
+          "required": true,
+          "source_layer": "vertical",
+          "protected": false,
+          "override_status": "inherited",
+          "options": [
+            "Pulsar N160",
+            "Dominar 400",
+            "Chetak",
+            "Avenger 220"
+          ],
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.registration_no",
+          "name": "registration_no",
+          "label": "Registration Number",
+          "type": "text",
+          "required": false,
+          "source_layer": "vertical",
+          "protected": false,
+          "override_status": "inherited",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.vin",
+          "name": "vin",
+          "label": "VIN",
+          "type": "text",
+          "required": false,
+          "source_layer": "vertical",
+          "protected": false,
+          "override_status": "inherited",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.gstin",
+          "name": "gstin",
+          "label": "GSTIN",
+          "type": "text",
+          "required": true,
+          "source_layer": "tenant",
+          "protected": false,
+          "override_status": "added_by_tenant",
+          "validation": {
+            "pattern": "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$"
+          },
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.bajaj_dealer_code",
+          "name": "bajaj_dealer_code",
+          "label": "Bajaj Dealer Code",
+          "type": "text",
+          "required": true,
+          "source_layer": "tenant",
+          "protected": false,
+          "override_status": "added_by_tenant",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.cost_price",
+          "name": "cost_price",
+          "label": "Cost Price",
+          "type": "number",
+          "required": false,
+          "source_layer": "platform",
+          "protected": false,
+          "override_status": "hidden_by_role",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "hidden",
+            "SALES_MANAGER": "visible",
+            "DEALER_PRINCIPAL": "visible",
+            "OEM_ADMIN": "visible"
+          }
+        },
+        {
+          "stable_id": "fld.margin_pct",
+          "name": "margin_pct",
+          "label": "Margin %",
+          "type": "number",
+          "required": false,
+          "source_layer": "platform",
+          "protected": false,
+          "override_status": "hidden_by_role",
+          "visibility_by_role": {
+            "SALES_EXECUTIVE": "hidden",
+            "SALES_MANAGER": "visible",
+            "DEALER_PRINCIPAL": "visible",
+            "OEM_ADMIN": "visible"
+          }
+        }
+      ],
+      "form_layout": {
+        "sections": [
+          {
+            "stable_id": "sec.customer",
+            "label": "Customer",
+            "fields": [
+              "customer_id",
+              "gstin",
+              "bajaj_dealer_code"
+            ]
+          },
+          {
+            "stable_id": "sec.vehicle",
+            "label": "Vehicle",
+            "fields": [
+              "vehicle_model",
+              "registration_no",
+              "vin"
+            ]
+          },
+          {
+            "stable_id": "sec.pricing",
+            "label": "Pricing",
+            "fields": [
+              "total_amount",
+              "discount_pct",
+              "cost_price",
+              "margin_pct"
+            ]
+          },
+          {
+            "stable_id": "sec.lines",
+            "label": "Line Items",
+            "fields": [
+              "line_items"
+            ]
+          },
+          {
+            "stable_id": "sec.notes",
+            "label": "Notes",
+            "fields": [
+              "notes"
+            ]
+          }
+        ]
+      },
+      "dependencies": {
+        "rules": [
+          "rule.vehicle_order.min_lines",
+          "rule.vehicle_order.vehicle_model_required",
+          "rule.vehicle_order.bajaj_dealer_code_required",
+          "rule.vehicle_order.sales_exec_approval_limit",
+          "rule.vehicle_order.high_discount_warning"
+        ],
+        "workflow": [
+          "workflow.vehicle_order"
+        ],
+        "permissions": [
+          "permission.vehicle_order"
+        ]
+      }
+    },
+    {
+      "artifact_key": "entity.vehicle_booking",
+      "entity_type": "vehicle_booking",
+      "label": "Vehicle Booking",
+      "description": "Booking record created before final vehicle order.",
+      "status": "active",
+      "fields": [
+        {
+          "stable_id": "fld.customer_id",
+          "name": "customer_id",
+          "label": "Customer",
+          "type": "reference",
+          "required": true,
+          "source_layer": "platform",
+          "protected": true
+        },
+        {
+          "stable_id": "fld.vehicle_model",
+          "name": "vehicle_model",
+          "label": "Vehicle Model",
+          "type": "select",
+          "required": true,
+          "source_layer": "vertical"
+        },
+        {
+          "stable_id": "fld.booking_amount",
+          "name": "booking_amount",
+          "label": "Booking Amount",
+          "type": "number",
+          "required": true,
+          "source_layer": "vertical"
+        },
+        {
+          "stable_id": "fld.expected_delivery_date",
+          "name": "expected_delivery_date",
+          "label": "Expected Delivery Date",
+          "type": "date",
+          "required": false,
+          "source_layer": "vertical"
+        }
+      ]
+    },
+    {
+      "artifact_key": "entity.service_job",
+      "entity_type": "service_job",
+      "label": "Service Job",
+      "description": "Vehicle service job card.",
+      "status": "active",
+      "fields": [
+        {
+          "stable_id": "fld.customer_id",
+          "name": "customer_id",
+          "label": "Customer",
+          "type": "reference",
+          "required": true,
+          "source_layer": "platform",
+          "protected": true
+        },
+        {
+          "stable_id": "fld.registration_no",
+          "name": "registration_no",
+          "label": "Registration Number",
+          "type": "text",
+          "required": true,
+          "source_layer": "vertical"
+        },
+        {
+          "stable_id": "fld.service_type",
+          "name": "service_type",
+          "label": "Service Type",
+          "type": "select",
+          "required": true,
+          "source_layer": "vertical",
+          "options": [
+            "Free Service",
+            "Paid Service",
+            "Accident Repair",
+            "Warranty"
+          ]
+        },
+        {
+          "stable_id": "fld.odometer_reading",
+          "name": "odometer_reading",
+          "label": "Odometer Reading",
+          "type": "number",
+          "required": true,
+          "source_layer": "vertical"
+        }
+      ]
+    },
+    {
+      "artifact_key": "entity.parts_inventory",
+      "entity_type": "parts_inventory",
+      "label": "Parts Inventory",
+      "description": "Spare parts stock and reorder control.",
+      "status": "active",
+      "fields": [
+        {
+          "stable_id": "fld.part_code",
+          "name": "part_code",
+          "label": "Part Code",
+          "type": "text",
+          "required": true,
+          "source_layer": "platform",
+          "protected": true
+        },
+        {
+          "stable_id": "fld.part_name",
+          "name": "part_name",
+          "label": "Part Name",
+          "type": "text",
+          "required": true,
+          "source_layer": "platform"
+        },
+        {
+          "stable_id": "fld.quantity_on_hand",
+          "name": "quantity_on_hand",
+          "label": "Qty On Hand",
+          "type": "number",
+          "required": true,
+          "source_layer": "platform"
+        },
+        {
+          "stable_id": "fld.reorder_level",
+          "name": "reorder_level",
+          "label": "Reorder Level",
+          "type": "number",
+          "required": true,
+          "source_layer": "vertical"
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "business_intent": "Every vehicle order must include at least one line item before it can be submitted.",
+      "risk_mitigated": "Prevents empty orders from entering the approval workflow.",
+      "layer": "platform",
+      "enforcement_level": "BLOCK",
+      "rule_json": {
+        "id": "rule.vehicle_order.min_lines",
+        "name": "Minimum Line Items Required",
+        "entity_type": "vehicle_order",
+        "trigger": "BEFORE_SUBMIT",
+        "priority": 5,
+        "enabled": true,
+        "condition": {
+          "op": "LT",
+          "left": {
+            "path": "vehicle_order.line_items.length"
+          },
+          "right": {
+            "value": 1
+          }
+        },
+        "action": {
+          "type": "BLOCK",
+          "message": "Vehicle order must have at least one line item before submission."
+        }
+      }
+    },
+    {
+      "business_intent": "Automotive vehicle orders must identify the vehicle model before submission.",
+      "risk_mitigated": "Prevents unfulfillable orders without a vehicle model.",
+      "layer": "vertical",
+      "enforcement_level": "BLOCK",
+      "rule_json": {
+        "id": "rule.vehicle_order.vehicle_model_required",
+        "name": "Automotive Vehicle Model Required",
+        "entity_type": "vehicle_order",
+        "trigger": "BEFORE_SUBMIT",
+        "priority": 10,
+        "enabled": true,
+        "condition": {
+          "op": "IS_NULL",
+          "left": {
+            "path": "vehicle_order.vehicle_model"
+          }
+        },
+        "action": {
+          "type": "BLOCK",
+          "message": "Vehicle model is required for automotive vehicle orders."
+        }
+      }
+    },
+    {
+      "business_intent": "Bajaj vehicle orders must include the Bajaj dealer code before submission.",
+      "risk_mitigated": "Prevents orders from being submitted without dealer attribution.",
+      "layer": "tenant",
+      "enforcement_level": "BLOCK",
+      "rule_json": {
+        "id": "rule.vehicle_order.bajaj_dealer_code_required",
+        "name": "Bajaj Dealer Code Required",
+        "entity_type": "vehicle_order",
+        "trigger": "BEFORE_SUBMIT",
+        "priority": 20,
+        "enabled": true,
+        "condition": {
+          "op": "IS_NULL",
+          "left": {
+            "path": "vehicle_order.bajaj_dealer_code"
+          }
+        },
+        "action": {
+          "type": "BLOCK",
+          "message": "Bajaj dealer code is required before submitting the order."
+        }
+      }
+    },
+    {
+      "business_intent": "Bajaj vehicle orders must include GSTIN before submission.",
+      "risk_mitigated": "Prevents tax compliance gaps in vehicle sales documents.",
+      "layer": "tenant",
+      "enforcement_level": "BLOCK",
+      "rule_json": {
+        "id": "rule.vehicle_order.gstin_required",
+        "name": "GSTIN Required for Bajaj Orders",
+        "entity_type": "vehicle_order",
+        "trigger": "BEFORE_SUBMIT",
+        "priority": 21,
+        "enabled": true,
+        "condition": {
+          "op": "IS_NULL",
+          "left": {
+            "path": "vehicle_order.gstin"
+          }
+        },
+        "action": {
+          "type": "BLOCK",
+          "message": "GSTIN is required before submitting this Bajaj vehicle order."
+        }
+      }
+    },
+    {
+      "business_intent": "Sales executives cannot approve vehicle orders above ₹5L.",
+      "risk_mitigated": "Prevents high-value approvals by unauthorized sales users.",
+      "layer": "role",
+      "enforcement_level": "BLOCK",
+      "rule_json": {
+        "id": "rule.vehicle_order.sales_exec_approval_limit",
+        "name": "Sales Executive Approval Limit",
+        "entity_type": "vehicle_order",
+        "trigger": "BEFORE_APPROVE",
+        "priority": 5,
+        "enabled": true,
+        "condition": {
+          "op": "AND",
+          "conditions": [
+            {
+              "op": "GT",
+              "left": {
+                "path": "vehicle_order.total_amount"
+              },
+              "right": {
+                "value": 500000
+              }
+            },
+            {
+              "op": "EQ",
+              "left": {
+                "path": "session.role"
+              },
+              "right": {
+                "value": "SALES_EXECUTIVE"
+              }
+            }
+          ]
+        },
+        "action": {
+          "type": "BLOCK",
+          "message": "Sales Executive cannot approve vehicle orders above ₹5L."
+        }
+      }
+    },
+    {
+      "business_intent": "Managers should be warned when discount is above recommended limit.",
+      "risk_mitigated": "Allows business flexibility while surfacing margin risk.",
+      "layer": "platform",
+      "enforcement_level": "WARN",
+      "rule_json": {
+        "id": "rule.vehicle_order.high_discount_warning",
+        "name": "High Discount Warning",
+        "entity_type": "vehicle_order",
+        "trigger": "BEFORE_APPROVE",
+        "priority": 20,
+        "enabled": true,
+        "condition": {
+          "op": "GT",
+          "left": {
+            "path": "vehicle_order.discount_pct"
+          },
+          "right": {
+            "value": 7
+          }
+        },
+        "action": {
+          "type": "WARN",
+          "message": "Discount of {{vehicle_order.discount_pct}}% exceeds the configured recommended limit."
+        }
+      }
+    },
+    {
+      "business_intent": "Small vehicle orders can be marked for fast-track review before submission.",
+      "risk_mitigated": "Reduces approval effort for low-risk transactions.",
+      "layer": "tenant",
+      "enforcement_level": "SET_FIELD",
+      "rule_json": {
+        "id": "rule.vehicle_order.fast_track_small_order",
+        "name": "Fast Track Small Order",
+        "entity_type": "vehicle_order",
+        "trigger": "BEFORE_SUBMIT",
+        "priority": 30,
+        "enabled": true,
+        "condition": {
+          "op": "LTE",
+          "left": {
+            "path": "vehicle_order.total_amount"
+          },
+          "right": {
+            "value": 50000
+          }
+        },
+        "action": {
+          "type": "SET_FIELD",
+          "field": "fast_track",
+          "value": true
+        }
+      }
+    },
+    {
+      "business_intent": "After approval, start vehicle delivery workflow.",
+      "risk_mitigated": "Prevents approved orders from waiting manually for delivery coordination.",
+      "layer": "vertical",
+      "enforcement_level": "START_WORKFLOW",
+      "rule_json": {
+        "id": "rule.vehicle_order.start_delivery_workflow",
+        "name": "Start Delivery Workflow After Approval",
+        "entity_type": "vehicle_order",
+        "trigger": "AFTER_APPROVE",
+        "priority": 10,
+        "enabled": true,
+        "condition": {
+          "op": "EQ",
+          "left": {
+            "path": "vehicle_order.status"
+          },
+          "right": {
+            "value": "APPROVED"
+          }
+        },
+        "action": {
+          "type": "START_WORKFLOW",
+          "workflow_key": "workflow.vehicle_delivery",
+          "message": "Vehicle delivery workflow started for approved order."
+        }
+      }
+    }
+  ],
+  "workflows": [
+    {
+      "artifact_key": "workflow.vehicle_order",
+      "entity_type": "vehicle_order",
+      "name": "Vehicle Order Workflow",
+      "initial_state": "DRAFT",
+      "states": [
+        {
+          "state": "DRAFT",
+          "label": "Draft",
+          "type": "normal",
+          "source_layer": "platform"
+        },
+        {
+          "state": "SUBMITTED",
+          "label": "Submitted",
+          "type": "normal",
+          "source_layer": "platform"
+        },
+        {
+          "state": "SALES_MANAGER_REVIEW",
+          "label": "Sales Manager Review",
+          "type": "normal",
+          "source_layer": "tenant"
+        },
+        {
+          "state": "APPROVED",
+          "label": "Approved",
+          "type": "normal",
+          "source_layer": "platform"
+        },
+        {
+          "state": "REJECTED",
+          "label": "Rejected",
+          "type": "terminal",
+          "source_layer": "platform"
+        },
+        {
+          "state": "CANCELLED",
+          "label": "Cancelled",
+          "type": "terminal",
+          "source_layer": "platform"
+        },
+        {
+          "state": "DELIVERED",
+          "label": "Delivered",
+          "type": "terminal",
+          "source_layer": "vertical"
+        }
+      ],
+      "transitions": [
+        {
+          "id": "tr.submit",
+          "from": "DRAFT",
+          "to": "SUBMITTED",
+          "command": "SUBMIT",
+          "actor_roles": [
+            "SALES_EXECUTIVE",
+            "SALES_MANAGER"
+          ],
+          "before_trigger": "BEFORE_SUBMIT",
+          "after_trigger": "AFTER_SUBMIT",
+          "guard_rules": [
+            "rule.vehicle_order.min_lines",
+            "rule.vehicle_order.vehicle_model_required",
+            "rule.vehicle_order.bajaj_dealer_code_required",
+            "rule.vehicle_order.gstin_required"
+          ],
+          "source_layer": "platform"
+        },
+        {
+          "id": "tr.manager_review",
+          "from": "SUBMITTED",
+          "to": "SALES_MANAGER_REVIEW",
+          "command": "ROUTE_TO_MANAGER",
+          "actor_roles": [
+            "SALES_MANAGER"
+          ],
+          "before_trigger": "BEFORE_APPROVE",
+          "guard_rules": [
+            "rule.vehicle_order.high_discount_warning"
+          ],
+          "source_layer": "tenant"
+        },
+        {
+          "id": "tr.approve",
+          "from": "SUBMITTED",
+          "to": "APPROVED",
+          "command": "APPROVE",
+          "actor_roles": [
+            "SALES_MANAGER",
+            "DEALER_PRINCIPAL",
+            "OEM_ADMIN"
+          ],
+          "before_trigger": "BEFORE_APPROVE",
+          "after_trigger": "AFTER_APPROVE",
+          "guard_rules": [
+            "rule.vehicle_order.sales_exec_approval_limit"
+          ],
+          "source_layer": "platform"
+        },
+        {
+          "id": "tr.manager_approve",
+          "from": "SALES_MANAGER_REVIEW",
+          "to": "APPROVED",
+          "command": "APPROVE",
+          "actor_roles": [
+            "SALES_MANAGER",
+            "DEALER_PRINCIPAL"
+          ],
+          "before_trigger": "BEFORE_APPROVE",
+          "after_trigger": "AFTER_APPROVE",
+          "guard_rules": [
+            "rule.vehicle_order.high_discount_warning"
+          ],
+          "source_layer": "tenant"
+        },
+        {
+          "id": "tr.reject",
+          "from": "SUBMITTED",
+          "to": "REJECTED",
+          "command": "REJECT",
+          "actor_roles": [
+            "SALES_MANAGER",
+            "DEALER_PRINCIPAL"
+          ],
+          "before_trigger": "BEFORE_UPDATE",
+          "source_layer": "platform"
+        },
+        {
+          "id": "tr.cancel",
+          "from": "DRAFT",
+          "to": "CANCELLED",
+          "command": "CANCEL",
+          "actor_roles": [
+            "SALES_EXECUTIVE",
+            "SALES_MANAGER"
+          ],
+          "before_trigger": "BEFORE_CANCEL",
+          "source_layer": "platform"
+        },
+        {
+          "id": "tr.deliver",
+          "from": "APPROVED",
+          "to": "DELIVERED",
+          "command": "MARK_DELIVERED",
+          "actor_roles": [
+            "SALES_MANAGER",
+            "DEALER_PRINCIPAL"
+          ],
+          "before_trigger": "BEFORE_UPDATE",
+          "source_layer": "vertical"
+        }
+      ],
+      "validation_findings": [
+        {
+          "severity": "warning",
+          "code": "WF_APPROVE_RULE_ROLE_MISMATCH",
+          "message": "Sales Executive Approval Limit rule references SALES_EXECUTIVE, but APPROVE permission is denied for SALES_EXECUTIVE. This rule may not execute for that role."
+        }
+      ]
+    }
+  ],
+  "overlay_deltas": [
+    {
+      "delta_id": "delta.platform.vehicle_order.base_fields",
+      "artifact_key": "entity.vehicle_order",
+      "layer": "platform",
+      "operation": "extend",
+      "target_path": "fields",
+      "stable_ids": [
+        "fld.customer_id",
+        "fld.total_amount",
+        "fld.discount_pct",
+        "fld.line_items",
+        "fld.notes"
+      ],
+      "protected_paths": [
+        "fields.customer_id"
+      ],
+      "status": "active"
+    },
+    {
+      "delta_id": "delta.vertical.vehicle_order.automotive_fields",
+      "artifact_key": "entity.vehicle_order",
+      "layer": "vertical",
+      "operation": "extend",
+      "target_path": "fields",
+      "stable_ids": [
+        "fld.vehicle_model",
+        "fld.registration_no",
+        "fld.vin"
+      ],
+      "status": "active"
+    },
+    {
+      "delta_id": "delta.tenant.bajaj.vehicle_order.tax_fields",
+      "artifact_key": "entity.vehicle_order",
+      "layer": "tenant",
+      "scope_id": "ten_bajaj_demo",
+      "operation": "extend",
+      "target_path": "fields",
+      "stable_ids": [
+        "fld.gstin",
+        "fld.bajaj_dealer_code"
+      ],
+      "reason": "Bajaj order compliance requires GSTIN and dealer code.",
+      "status": "active"
+    },
+    {
+      "delta_id": "delta.node.pune.vehicle_order.discount_constraint",
+      "artifact_key": "entity.vehicle_order",
+      "layer": "node",
+      "scope_id": "node_pune_central",
+      "operation": "constrain",
+      "target_path": "fields.discount_pct.validation.max",
+      "value": 7,
+      "reason": "Pune branch discount policy caps normal approval discount at 7%.",
+      "status": "draft"
+    },
+    {
+      "delta_id": "delta.role.sales_exec.vehicle_order.hide_cost",
+      "artifact_key": "entity.vehicle_order",
+      "layer": "role",
+      "scope_id": "SALES_EXECUTIVE",
+      "operation": "replace",
+      "target_path": "fields.cost_price.visibility",
+      "value": "hidden",
+      "reason": "Sales executives must not see cost or margin fields.",
+      "status": "active"
+    },
+    {
+      "delta_id": "delta.role.sales_exec.vehicle_order.hide_margin",
+      "artifact_key": "entity.vehicle_order",
+      "layer": "role",
+      "scope_id": "SALES_EXECUTIVE",
+      "operation": "replace",
+      "target_path": "fields.margin_pct.visibility",
+      "value": "hidden",
+      "reason": "Sales executives must not see margin fields.",
+      "status": "active"
+    }
+  ],
+  "permission_rules": [
+    {
+      "rule_id": "perm.vehicle_order.sales_exec.create",
+      "resource_ref": "vehicle_order",
+      "action_ref": "create",
+      "effect": "ALLOW",
+      "role_ref": "SALES_EXECUTIVE",
+      "layer": "tenant"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_exec.read",
+      "resource_ref": "vehicle_order",
+      "action_ref": "read",
+      "effect": "ALLOW",
+      "role_ref": "SALES_EXECUTIVE",
+      "layer": "tenant"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_exec.update",
+      "resource_ref": "vehicle_order",
+      "action_ref": "update",
+      "effect": "ALLOW",
+      "role_ref": "SALES_EXECUTIVE",
+      "layer": "tenant"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_exec.submit",
+      "resource_ref": "vehicle_order",
+      "action_ref": "submit",
+      "effect": "ALLOW",
+      "role_ref": "SALES_EXECUTIVE",
+      "layer": "tenant"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_exec.approve",
+      "resource_ref": "vehicle_order",
+      "action_ref": "approve",
+      "effect": "DENY",
+      "role_ref": "SALES_EXECUTIVE",
+      "layer": "role"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_manager.approve",
+      "resource_ref": "vehicle_order",
+      "action_ref": "approve",
+      "effect": "ALLOW",
+      "role_ref": "SALES_MANAGER",
+      "conditions": "total_amount <= 1000000",
+      "layer": "tenant"
+    },
+    {
+      "rule_id": "perm.vehicle_order.dealer_principal.approve",
+      "resource_ref": "vehicle_order",
+      "action_ref": "approve",
+      "effect": "ALLOW",
+      "role_ref": "DEALER_PRINCIPAL",
+      "layer": "tenant"
+    },
+    {
+      "rule_id": "perm.vehicle_order.oem_admin.all",
+      "resource_ref": "vehicle_order",
+      "action_ref": "*",
+      "effect": "ALLOW",
+      "role_ref": "OEM_ADMIN",
+      "layer": "platform"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_exec.field.cost_price",
+      "resource_ref": "vehicle_order",
+      "action_ref": "field:cost_price",
+      "effect": "DENY",
+      "role_ref": "SALES_EXECUTIVE",
+      "layer": "role"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_exec.field.margin_pct",
+      "resource_ref": "vehicle_order",
+      "action_ref": "field:margin_pct",
+      "effect": "DENY",
+      "role_ref": "SALES_EXECUTIVE",
+      "layer": "role"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_exec.row_filter",
+      "resource_ref": "vehicle_order",
+      "action_ref": "row_filter",
+      "effect": "ALLOW",
+      "role_ref": "SALES_EXECUTIVE",
+      "conditions": "created_by = {actor.user_id}",
+      "layer": "tenant"
+    },
+    {
+      "rule_id": "perm.vehicle_order.sales_manager.row_filter",
+      "resource_ref": "vehicle_order",
+      "action_ref": "row_filter",
+      "effect": "ALLOW",
+      "role_ref": "SALES_MANAGER",
+      "conditions": "node_id = {actor.node_id}",
+      "layer": "tenant"
+    },
+    {
+      "rule_id": "perm.vehicle_order.dealer_principal.row_filter",
+      "resource_ref": "vehicle_order",
+      "action_ref": "row_filter",
+      "effect": "ALLOW",
+      "role_ref": "DEALER_PRINCIPAL",
+      "conditions": "tenant_id = {actor.tenant_id}",
+      "layer": "tenant"
+    }
+  ],
+  "simulation_cases": [
+    {
+      "case_id": "sim.vehicle_order.submit.valid_sales_exec",
+      "label": "Valid Sales Executive Submit",
+      "entity_type": "vehicle_order",
+      "command": "SUBMIT",
+      "trigger": "BEFORE_SUBMIT",
+      "session": {
+        "user_id": "usr_sales_001",
+        "tenant_id": "ten_bajaj_demo",
+        "org_unit_id": "node_pune_central",
+        "role": "SALES_EXECUTIVE",
+        "node_ref": "node_pune_central"
+      },
+      "payload": {
+        "customer_id": "cust_001",
+        "total_amount": 145000,
+        "discount_pct": 5,
+        "vehicle_model": "Pulsar N160",
+        "gstin": "27ABCDE1234F1Z5",
+        "bajaj_dealer_code": "BAJ-PUN-001",
+        "line_items": [
+          {
+            "sku": "PUL-N160",
+            "qty": 1,
+            "unit_price": 145000
+          }
+        ]
+      },
+      "expected": {
+        "blocked": false,
+        "warnings": [],
+        "target_state": "SUBMITTED"
+      }
+    },
+    {
+      "case_id": "sim.vehicle_order.submit.missing_gstin",
+      "label": "Submit Blocked — Missing GSTIN",
+      "entity_type": "vehicle_order",
+      "command": "SUBMIT",
+      "trigger": "BEFORE_SUBMIT",
+      "session": {
+        "user_id": "usr_sales_001",
+        "tenant_id": "ten_bajaj_demo",
+        "org_unit_id": "node_pune_central",
+        "role": "SALES_EXECUTIVE",
+        "node_ref": "node_pune_central"
+      },
+      "payload": {
+        "customer_id": "cust_001",
+        "total_amount": 145000,
+        "discount_pct": 5,
+        "vehicle_model": "Pulsar N160",
+        "gstin": null,
+        "bajaj_dealer_code": "BAJ-PUN-001",
+        "line_items": [
+          {
+            "sku": "PUL-N160",
+            "qty": 1,
+            "unit_price": 145000
+          }
+        ]
+      },
+      "expected": {
+        "blocked": true,
+        "block_message": "GSTIN is required before submitting this Bajaj vehicle order.",
+        "matched_rule": "rule.vehicle_order.gstin_required"
+      }
+    },
+    {
+      "case_id": "sim.vehicle_order.approve.sales_exec_high_value",
+      "label": "Approve Blocked — Sales Executive Above Limit",
+      "entity_type": "vehicle_order",
+      "command": "APPROVE",
+      "trigger": "BEFORE_APPROVE",
+      "session": {
+        "user_id": "usr_sales_001",
+        "tenant_id": "ten_bajaj_demo",
+        "org_unit_id": "node_pune_central",
+        "role": "SALES_EXECUTIVE",
+        "node_ref": "node_pune_central"
+      },
+      "payload": {
+        "customer_id": "cust_002",
+        "total_amount": 650000,
+        "discount_pct": 6,
+        "vehicle_model": "Dominar 400",
+        "gstin": "27ABCDE1234F1Z5",
+        "bajaj_dealer_code": "BAJ-PUN-001",
+        "status": "SUBMITTED",
+        "line_items": [
+          {
+            "sku": "DOM-400",
+            "qty": 1,
+            "unit_price": 650000
+          }
+        ]
+      },
+      "expected": {
+        "permission_result": "DENY_APPROVE",
+        "rule_note": "Rule may not execute because permission blocks approval first."
+      }
+    },
+    {
+      "case_id": "sim.vehicle_order.approve.manager_high_discount_warning",
+      "label": "Approve Warning — High Discount",
+      "entity_type": "vehicle_order",
+      "command": "APPROVE",
+      "trigger": "BEFORE_APPROVE",
+      "session": {
+        "user_id": "usr_mgr_001",
+        "tenant_id": "ten_bajaj_demo",
+        "org_unit_id": "node_pune_central",
+        "role": "SALES_MANAGER",
+        "node_ref": "node_pune_central"
+      },
+      "payload": {
+        "customer_id": "cust_003",
+        "total_amount": 420000,
+        "discount_pct": 8,
+        "vehicle_model": "Chetak",
+        "gstin": "27ABCDE1234F1Z5",
+        "bajaj_dealer_code": "BAJ-PUN-001",
+        "status": "SUBMITTED",
+        "line_items": [
+          {
+            "sku": "CHK-001",
+            "qty": 1,
+            "unit_price": 420000
+          }
+        ]
+      },
+      "expected": {
+        "blocked": false,
+        "warnings": [
+          "Discount of 8% exceeds the configured recommended limit."
+        ],
+        "target_state": "APPROVED"
+      }
+    }
+  ],
+  "impact_findings": [
+    {
+      "finding_id": "impact.field.discount_pct.rules",
+      "severity": "warning",
+      "artifact_key": "entity.vehicle_order",
+      "message": "Field discount_pct is used by High Discount Warning rule and Pune discount constraint.",
+      "affected_items": [
+        "rule.vehicle_order.high_discount_warning",
+        "delta.node.pune.vehicle_order.discount_constraint"
+      ]
+    },
+    {
+      "finding_id": "impact.permission.approve.rule_mismatch",
+      "severity": "warning",
+      "artifact_key": "workflow.vehicle_order",
+      "message": "SALES_EXECUTIVE is denied approve permission; BEFORE_APPROVE approval-limit rule may not execute for that role.",
+      "affected_items": [
+        "perm.vehicle_order.sales_exec.approve",
+        "rule.vehicle_order.sales_exec_approval_limit"
+      ]
+    },
+    {
+      "finding_id": "impact.required.hidden.check",
+      "severity": "pass",
+      "artifact_key": "entity.vehicle_order",
+      "message": "No required field is hidden for SALES_EXECUTIVE.",
+      "affected_items": []
+    }
+  ],
+  "release_packages": [
+    {
+      "release_id": "rel.bajaj.vehicle_order_governance.v1",
+      "name": "Bajaj Vehicle Order Governance v1",
+      "environment": "DEV",
+      "target_environment": "UAT",
+      "status": "draft",
+      "owner": "functional.consultant@bajaj-demo.example",
+      "risk": "medium",
+      "items": [
+        {
+          "item_id": "rel_item.gstin_field",
+          "artifact_key": "entity.vehicle_order",
+          "change_type": "entity_delta",
+          "layer": "tenant",
+          "status": "validated",
+          "risk": "medium"
+        },
+        {
+          "item_id": "rel_item.gstin_rule",
+          "artifact_key": "rule.vehicle_order.gstin_required",
+          "change_type": "rule",
+          "layer": "tenant",
+          "status": "simulated",
+          "risk": "high"
+        },
+        {
+          "item_id": "rel_item.discount_constraint",
+          "artifact_key": "entity.vehicle_order",
+          "change_type": "overlay_delta",
+          "layer": "node",
+          "status": "needs_review",
+          "risk": "medium"
+        },
+        {
+          "item_id": "rel_item.cost_field_mask",
+          "artifact_key": "permission.vehicle_order",
+          "change_type": "permission",
+          "layer": "role",
+          "status": "validated",
+          "risk": "medium"
+        }
+      ],
+      "validation_results": [
+        {
+          "check": "schema_validation",
+          "status": "pass",
+          "message": "Entity schema is valid."
+        },
+        {
+          "check": "overlay_merge_validation",
+          "status": "pass",
+          "message": "Overlay deltas merge successfully."
+        },
+        {
+          "check": "protected_node_validation",
+          "status": "pass",
+          "message": "No protected nodes overridden."
+        },
+        {
+          "check": "rule_dsl_validation",
+          "status": "pass",
+          "message": "All rule operators and actions are supported."
+        },
+        {
+          "check": "workflow_path_validation",
+          "status": "warning",
+          "message": "Approval rule references SALES_EXECUTIVE, but role cannot approve."
+        },
+        {
+          "check": "permission_consistency",
+          "status": "pass",
+          "message": "No required field hidden by active field masks."
+        },
+        {
+          "check": "simulation_coverage",
+          "status": "warning",
+          "message": "One workflow reroute case still needs simulation."
+        }
+      ],
+      "simulation_case_ids": [
+        "sim.vehicle_order.submit.valid_sales_exec",
+        "sim.vehicle_order.submit.missing_gstin",
+        "sim.vehicle_order.approve.sales_exec_high_value",
+        "sim.vehicle_order.approve.manager_high_discount_warning"
+      ]
+    }
+  ],
+  "compiled_previews": [
+    {
+      "compiled_artifact_key": "compiled.entity.vehicle_order.ten_bajaj_demo.node_pune_central.sales_exec",
+      "artifact_type": "entity_schema",
+      "scope_hash": "mock_scope_ten_bajaj_node_pune_role_sales_exec",
+      "compiler_version": "mock-compiler-1.0",
+      "runtime_summary": {
+        "visible_fields": [
+          "customer_id",
+          "total_amount",
+          "discount_pct",
+          "line_items",
+          "notes",
+          "vehicle_model",
+          "registration_no",
+          "vin",
+          "gstin",
+          "bajaj_dealer_code"
+        ],
+        "hidden_fields": [
+          "cost_price",
+          "margin_pct"
+        ],
+        "required_fields": [
+          "customer_id",
+          "total_amount",
+          "line_items",
+          "vehicle_model",
+          "gstin",
+          "bajaj_dealer_code"
+        ],
+        "active_rules": [
+          "rule.vehicle_order.min_lines",
+          "rule.vehicle_order.vehicle_model_required",
+          "rule.vehicle_order.bajaj_dealer_code_required",
+          "rule.vehicle_order.gstin_required",
+          "rule.vehicle_order.fast_track_small_order"
+        ],
+        "workflow": "workflow.vehicle_order"
+      }
+    }
+  ],
+  "studio_home": {
+    "recent_artifacts": [
+      "entity.vehicle_order",
+      "workflow.vehicle_order",
+      "permission.vehicle_order"
+    ],
+    "warning_summary": {
+      "errors": 0,
+      "warnings": 4,
+      "draft_changes": 3
+    },
+    "recommended_demo_artifact": "entity.vehicle_order"
+  }
+}

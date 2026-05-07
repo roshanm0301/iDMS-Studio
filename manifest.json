@@ -1,0 +1,21 @@
+{
+  "pack_name": "IDMS Admin Studio Blueprint Pack",
+  "generated_on": "2026-04-28",
+  "files": [
+    "00-executive-product-blueprint.md",
+    "01-information-architecture-and-routes.md",
+    "02-studio-shell-and-interaction-model.md",
+    "03-entity-designer-blueprint.md",
+    "04-rule-builder-blueprint.md",
+    "05-workflow-designer-blueprint.md",
+    "06-overlay-studio-blueprint.md",
+    "07-permission-matrix-blueprint.md",
+    "08-release-governance-and-simulation.md",
+    "09-automotive-seed-data-guide.md",
+    "10-critical-review.md",
+    "IDMS_Admin_Studio_Complete_Blueprint.md",
+    "README.md",
+    "seed/idms_admin_studio_automotive_seed.json"
+  ],
+  "seed_sha256": "3f8cbfc6eaab762d0e3037e6ef8b5e200dad70fb96dc00a485d56de1efc554cd"
+}
