@@ -67,11 +67,11 @@ export default function SchemaOutline({ entity, selectedFieldId, onSelectField }
                 alignItems: 'center',
                 gap: '7px',
                 background: selectedFieldId === field.fieldId
-                  ? 'var(--primary-light, rgba(99,102,241,0.06))'
+                  ? 'hsl(22 100% 51% / 0.08)'
                   : 'transparent',
-                color: selectedFieldId === field.fieldId ? 'var(--primary)' : 'var(--text)',
+                color: selectedFieldId === field.fieldId ? 'var(--accent)' : 'var(--text)',
                 borderLeft: selectedFieldId === field.fieldId
-                  ? '2px solid var(--primary)'
+                  ? '2px solid var(--accent)'
                   : '2px solid transparent',
                 opacity: field.lifecycle === 'disabled' ? 0.5 : 1,
                 transition: 'background 0.1s',

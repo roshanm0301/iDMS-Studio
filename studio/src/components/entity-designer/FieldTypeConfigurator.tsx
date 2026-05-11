@@ -3,10 +3,11 @@
 // ============================================================
 import { useState, useMemo } from 'react';
 import { AlertTriangle, Info, Plus, Trash2, X } from 'lucide-react';
-import type { FieldTypeCode, FilterCondition, ConditionOperator, ConditionValueSource, SessionContextKey } from '../../types/entityDesigner';
+import type { FieldTypeCode, FilterConditionGroup } from '../../types/entityDesigner';
 import { useEntityDesignerStore } from '../../hooks/useEntityDesignerStore';
 import { getEntityDefinitions, getDocumentCodeSettings, getMasterCodeSettings } from '../../data/mockService';
 import { toSlug } from '../../utils/entityDesignerUtils';
+import { ConditionBuilder } from './ConditionBuilder';
 
 interface Props {
   fieldType: FieldTypeCode;
@@ -441,66 +442,12 @@ function EntityRefConfig({ cfg, update, currentEntityType }: { cfg: Record<strin
   const { savedEntities } = useEntityDesignerStore();
   const allEntities = useMemo(() => getEntityDefinitions(savedEntities), [savedEntities]);
   const targetEnt = allEntities.find(e => e.entityType === cfg.targetEntity);
-  const currentEnt = allEntities.find(e => e.entityType === currentEntityType);
 
   const fieldOpts = useMemo(
     () => (targetEnt?.fields ?? []).map(f => ({ value: f.fieldId, label: `${f.label} (${f.fieldId})` })),
     [targetEnt],
   );
-  const currentFieldOpts = useMemo(
-    () => (currentEnt?.fields ?? []).map(f => ({ value: f.fieldId, label: `${f.label} (${f.fieldId})` })),
-    [currentEnt],
-  );
-
-  // Condition builder state
-  const conditions: FilterCondition[] = cfg.filterConditions?.conditions ?? [];
-  const condLogic: 'AND' | 'OR' = cfg.filterConditions?.logic ?? 'AND';
-  const [showCondBuilder, setShowCondBuilder] = useState(conditions.length > 0);
-
-  const updateConditions = (newConds: FilterCondition[], logic?: 'AND' | 'OR') => {
-    update('filterConditions', { logic: logic ?? condLogic, conditions: newConds });
-  };
-
-  const addCondition = () => {
-    const newCond: FilterCondition = {
-      id: `cond_${Date.now()}`,
-      targetField: '',
-      operator: 'equals',
-      valueSource: 'static',
-      staticValue: '',
-    };
-    updateConditions([...conditions, newCond]);
-  };
-
-  const updateCondition = (id: string, patch: Partial<FilterCondition>) => {
-    updateConditions(conditions.map(c => c.id === id ? { ...c, ...patch } : c));
-  };
-
-  const removeCondition = (id: string) => {
-    updateConditions(conditions.filter(c => c.id !== id));
-  };
-
-  const OPERATORS: { value: ConditionOperator; label: string }[] = [
-    { value: 'equals', label: 'equals' },
-    { value: 'not_equals', label: 'not equals' },
-    { value: 'in', label: 'in' },
-    { value: 'not_in', label: 'not in' },
-    { value: 'is_null', label: 'is empty' },
-    { value: 'is_not_null', label: 'is not empty' },
-  ];
-
-  const VALUE_SOURCES: { value: ConditionValueSource; label: string }[] = [
-    { value: 'static', label: 'Static Value' },
-    { value: 'current_record_field', label: 'Current Record Field' },
-    { value: 'session', label: 'Session Context' },
-  ];
-
-  const SESSION_KEYS: { value: SessionContextKey; label: string }[] = [
-    { value: 'current_user_id', label: 'Current User ID' },
-    { value: 'current_tenant_id', label: 'Current Tenant ID' },
-    { value: 'current_node_id', label: 'Current Node/Branch ID' },
-    { value: 'current_role_code', label: 'Current Role Code' },
-  ];
+  // filterConditions is managed by the standalone <ConditionBuilder> component
 
   const FieldSelect = ({ label, desc, configKey }: { label: string; desc?: string; configKey: string }) => (
     <Row label={label} desc={desc}>
@@ -558,96 +505,12 @@ function EntityRefConfig({ cfg, update, currentEntityType }: { cfg: Record<strin
       </select>
     </Row>
 
-    {/* Condition Builder */}
-    <div style={{ borderTop: '1px solid var(--border)', paddingTop: '12px', marginTop: '4px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <label className="form-label" style={{ margin: 0 }}>
-          Filter Conditions {conditions.length > 0 && <span style={{ color: 'var(--accent)', fontWeight: 700 }}>({conditions.length})</span>}
-        </label>
-        <button className="btn btn-ghost btn-sm" style={{ fontSize: '11px' }}
-          onClick={() => { setShowCondBuilder(v => !v); }}>
-          {showCondBuilder ? 'Hide' : 'Show / Add'}
-        </button>
-      </div>
-      {conditions.length > 0 && !showCondBuilder && (
-        <p style={{ fontSize: '11px', color: 'var(--muted)', margin: '0 0 8px' }}>
-          {conditions.length} filter condition{conditions.length > 1 ? 's' : ''} active — records shown only when conditions match
-        </p>
-      )}
-      {showCondBuilder && (
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '10px', background: 'var(--bg-secondary)' }}>
-          {conditions.length > 1 && (
-            <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', alignItems: 'center' }}>
-              <span style={{ fontSize: '11px', color: 'var(--muted)' }}>Combine with:</span>
-              {(['AND', 'OR'] as const).map(l => (
-                <button key={l}
-                  style={{ padding: '2px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, cursor: 'pointer',
-                    border: `1px solid ${condLogic === l ? 'var(--accent)' : 'var(--border)'}`,
-                    background: condLogic === l ? 'hsl(22 100% 51% / 0.1)' : 'transparent',
-                    color: condLogic === l ? 'var(--accent)' : 'var(--muted)' }}
-                  onClick={() => updateConditions(conditions, l)}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          )}
-          {conditions.map(cond => (
-            <div key={cond.id} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap' }}>
-              {/* Target field on referenced entity */}
-              <select className="search-input" style={{ flex: 1, minWidth: '120px', fontSize: '12px' }}
-                value={cond.targetField}
-                onChange={e => updateCondition(cond.id, { targetField: e.target.value })}>
-                <option value="">Entity field…</option>
-                {fieldOpts.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-              </select>
-              {/* Operator */}
-              <select className="search-input" style={{ width: '110px', fontSize: '12px' }}
-                value={cond.operator}
-                onChange={e => updateCondition(cond.id, { operator: e.target.value as ConditionOperator })}>
-                {OPERATORS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-              {/* Value source */}
-              {!['is_null', 'is_not_null'].includes(cond.operator) && (
-                <select className="search-input" style={{ width: '140px', fontSize: '12px' }}
-                  value={cond.valueSource}
-                  onChange={e => updateCondition(cond.id, { valueSource: e.target.value as ConditionValueSource, staticValue: '', recordFieldRef: '', sessionKey: undefined })}>
-                  {VALUE_SOURCES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                </select>
-              )}
-              {/* Value input */}
-              {cond.valueSource === 'static' && !['is_null', 'is_not_null'].includes(cond.operator) && (
-                <input className="search-input" style={{ flex: 1, minWidth: '80px', fontSize: '12px' }}
-                  placeholder="value…"
-                  value={cond.staticValue ?? ''}
-                  onChange={e => updateCondition(cond.id, { staticValue: e.target.value })} />
-              )}
-              {cond.valueSource === 'current_record_field' && !['is_null', 'is_not_null'].includes(cond.operator) && (
-                <select className="search-input" style={{ flex: 1, minWidth: '100px', fontSize: '12px' }}
-                  value={cond.recordFieldRef ?? ''}
-                  onChange={e => updateCondition(cond.id, { recordFieldRef: e.target.value })}>
-                  <option value="">Current record field…</option>
-                  {currentFieldOpts.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
-                </select>
-              )}
-              {cond.valueSource === 'session' && !['is_null', 'is_not_null'].includes(cond.operator) && (
-                <select className="search-input" style={{ flex: 1, minWidth: '120px', fontSize: '12px' }}
-                  value={cond.sessionKey ?? ''}
-                  onChange={e => updateCondition(cond.id, { sessionKey: e.target.value as SessionContextKey })}>
-                  <option value="">Session key…</option>
-                  {SESSION_KEYS.map(k => <option key={k.value} value={k.value}>{k.label}</option>)}
-                </select>
-              )}
-              <button className="btn btn-ghost" style={{ padding: '4px 5px', flexShrink: 0 }} onClick={() => removeCondition(cond.id)}>
-                <X size={11} />
-              </button>
-            </div>
-          ))}
-          <button className="btn btn-ghost btn-sm" style={{ fontSize: '11px', width: '100%', marginTop: '4px' }} onClick={addCondition}>
-            <Plus size={11} style={{ marginRight: 4 }} />Add Condition
-          </button>
-        </div>
-      )}
-    </div>
+    <ConditionBuilder
+      conditions={cfg.filterConditions ?? { logic: 'AND', conditions: [] }}
+      currentEntityType={currentEntityType ?? ''}
+      targetEntityType={cfg.targetEntity}
+      onChange={(group: FilterConditionGroup) => update('filterConditions', group)}
+    />
   </>;
 }
 

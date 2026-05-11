@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Database, ArrowRight, Layers, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import { getEntityDefinition, getCompileReadiness } from '../../data/mockService';
 import { useEntityDesignerStore } from '../../hooks/useEntityDesignerStore';
+import { LAYER_COLORS } from '../../utils/entityDesignerConstants';
 
 interface Props {
   artifactKey: string;
@@ -35,16 +36,13 @@ export default function EntitySchemaRedirectPanel({ artifactKey, entityType }: P
     return acc;
   }, {});
 
-  const LAYER_COLORS: Record<string, string> = {
-    platform: '#7c3aed', vertical: '#2563eb', tenant: '#059669', node: '#d97706', role: '#e11d48',
-  };
 
   return (
     <div style={{ padding: '24px', maxWidth: '680px' }}>
       {/* Banner */}
-      <div style={{ padding: '20px 24px', border: '2px solid var(--primary)', borderRadius: '10px', marginBottom: '24px', background: 'var(--primary-light, rgba(99,102,241,0.06))' }}>
+      <div style={{ padding: '20px 24px', border: '2px solid var(--accent)', borderRadius: '10px', marginBottom: '24px', background: 'hsl(22 100% 51% / 0.06)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-          <Database size={22} style={{ color: 'var(--primary)' }} />
+          <Database size={22} style={{ color: 'var(--accent)' }} />
           <div>
             <div style={{ fontWeight: 700, fontSize: '16px' }}>{entity.label}</div>
             <div style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--muted)' }}>entity.{entity.entityType}</div>

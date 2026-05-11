@@ -93,8 +93,8 @@ export default function ScopeBar() {
                       style={{
                         display: 'flex', alignItems: 'flex-start', gap: '10px',
                         padding: '10px 12px', borderRadius: '7px', textAlign: 'left',
-                        border: `1px solid ${isActive ? 'var(--primary)' : 'var(--border)'}`,
-                        background: isActive ? 'var(--primary-light, rgba(99,102,241,0.07))' : 'transparent',
+                        border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                        background: isActive ? 'hsl(22 100% 51% / 0.08)' : 'transparent',
                         cursor: 'pointer', width: '100%',
                         transition: 'border-color 0.15s, background 0.15s',
                       }}
@@ -102,8 +102,8 @@ export default function ScopeBar() {
                       {/* Radio dot */}
                       <span style={{
                         width: 14, height: 14, borderRadius: '50%', flexShrink: 0, marginTop: '2px',
-                        border: `2px solid ${isActive ? 'var(--primary)' : 'var(--border)'}`,
-                        background: isActive ? 'var(--primary)' : 'transparent',
+                        border: `2px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                        background: isActive ? 'var(--accent)' : 'transparent',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         transition: 'all 0.15s',
                       }}>
@@ -114,7 +114,7 @@ export default function ScopeBar() {
                       <div>
                         <div style={{
                           fontWeight: 600, fontSize: '13px',
-                          color: isActive ? 'var(--primary)' : 'var(--text)',
+                          color: isActive ? 'var(--accent)' : 'var(--text)',
                         }}>
                           {m.label}
                         </div>

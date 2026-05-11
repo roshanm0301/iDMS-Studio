@@ -7,13 +7,10 @@ interface Props {
 }
 
 const CLASSIFICATION_CONFIG: Record<DataClassification, { label: string; color: string; bg: string; desc: string }> = {
-  public:         { label: 'Public',         color: '#059669', bg: 'rgba(5,150,105,0.1)',    desc: 'Safe to expose in APIs, exports, and public views' },
-  internal:       { label: 'Internal',       color: '#2563eb', bg: 'rgba(37,99,235,0.1)',    desc: 'Visible to authenticated users, exportable by default' },
-  confidential:   { label: 'Confidential',   color: '#7c3aed', bg: 'rgba(124,58,237,0.1)',   desc: 'Access restricted; export requires explicit governance approval' },
-  regulated:      { label: 'Regulated',      color: '#d97706', bg: 'rgba(217,119,6,0.1)',    desc: 'Subject to legal/compliance obligations (GST, PAN, etc.)' },
-  pii:            { label: 'PII',            color: '#dc2626', bg: 'rgba(220,38,38,0.1)',    desc: 'Personally Identifiable Information — mask in export and APIs' },
-  financial:      { label: 'Financial',      color: '#c2410c', bg: 'rgba(194,65,12,0.1)',    desc: 'Monetary values — audit trail required; control API exposure' },
-  audit_sensitive:{ label: 'Audit Sensitive',color: '#991b1b', bg: 'rgba(153,27,27,0.1)',    desc: 'Requires masking in audit logs; highest sensitivity tier' },
+  open:      { label: 'Open',      color: '#16a34a', bg: 'rgba(22,163,74,0.1)',   desc: 'Safe to share externally — customer portals, public APIs, exports' },
+  internal:  { label: 'Internal',  color: '#6b7280', bg: 'rgba(107,114,128,0.1)', desc: 'Business use only — visible to authenticated staff, not external audiences' },
+  sensitive: { label: 'Sensitive', color: '#d97706', bg: 'rgba(217,119,6,0.1)',   desc: 'Personal or commercially confidential — mask in export and APIs' },
+  regulated: { label: 'Regulated', color: '#dc2626', bg: 'rgba(220,38,38,0.1)',   desc: 'Subject to external legal/regulatory obligation — enforcement required' },
 };
 
 export default function GovernancePolicyHints({ entity }: Props) {
@@ -23,7 +20,7 @@ export default function GovernancePolicyHints({ entity }: Props) {
   return (
     <div style={{ padding: '16px', overflowY: 'auto', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <Shield size={16} style={{ color: 'var(--primary)' }} />
+        <Shield size={16} style={{ color: 'var(--accent)' }} />
         <h3 style={{ margin: 0, fontSize: '15px' }}>Governance Policy</h3>
       </div>
 

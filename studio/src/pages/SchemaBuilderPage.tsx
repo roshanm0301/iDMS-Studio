@@ -4,6 +4,7 @@
 import { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { AlertTriangle, XCircle, X, Copy, Check, Braces } from 'lucide-react';
+import type { LayerCode } from '../types';
 
 import { useEntityDesignerStore } from '../hooks/useEntityDesignerStore';
 import { getEntityDefinition } from '../data/mockService';
@@ -15,6 +16,8 @@ import FieldInspector from '../components/entity-designer/FieldInspector';
 import AddFieldDrawer from '../components/entity-designer/AddFieldDrawer';
 import SchemaDiffViewer from '../components/entity-designer/SchemaDiffViewer';
 import GovernancePolicyHints from '../components/entity-designer/GovernancePolicyHints';
+import { ViewsBuilder } from '../components/entity-designer/ViewsBuilder';
+import ActionsPanel from '../components/entity-designer/ActionsPanel';
 
 import type { SchemaSubTab, FieldInstance } from '../types/entityDesigner';
 
@@ -163,7 +166,7 @@ function SchemaPreviewPanel({
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
       <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-        <Braces size={15} style={{ color: 'var(--primary)' }} />
+        <Braces size={15} style={{ color: 'var(--accent)' }} />
         <span style={{ fontWeight: 700, fontSize: '14px', flex: 1 }}>Schema JSON</span>
         <button
           className="btn btn-ghost btn-sm"
@@ -258,6 +261,10 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
   const [constrainField, setConstrainField] = useState<FieldInstance | null>(null); // Phase 3: constrain inherited field
   const [rightPanel, setRightPanel]   = useState<null | 'issues' | 'schema'>(null);
 
+  // P1-01 / P1-02: editing layer highlight + view mode
+  const [editingLayer, setEditingLayer] = useState<LayerCode>('tenant');
+  const [viewMode, setViewMode] = useState<'delta' | 'resolved'>('delta');
+
   const activeTab: SchemaSubTab = schemaSubTabByEntity[entityType] ?? 'fields';
   const setActiveTab = (tab: SchemaSubTab) => setSchemaSubTab(entityType, tab);
 
@@ -340,8 +347,11 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
 
   const TABS: { key: SchemaSubTab; label: string }[] = [
     { key: 'fields',     label: 'Fields' },
-    { key: 'diff',       label: 'Schema Diff' },
+    { key: 'views',      label: 'Views' },
+    { key: 'actions',    label: 'Actions' },
+    { key: 'diff',       label: 'Diff' },
     { key: 'governance', label: 'Governance' },
+    // 'imports' stays in SchemaSubTab type but is not yet rendered
   ];
 
   return (
@@ -354,6 +364,10 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
         compileErrorCount={compileErrors}
         compileWarningCount={compileWarnings}
         onShowIssues={() => setRightPanel(p => p === 'issues' ? null : 'issues')}
+        editingLayer={editingLayer}
+        onEditingLayerChange={setEditingLayer}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
         onShowSchemaPreview={() => setRightPanel(p => p === 'schema' ? null : 'schema')}
       />
 
@@ -361,8 +375,11 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
         {/* Center: Workspace */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-          {/* Sub-tab bar */}
-          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)', flexShrink: 0 }}>
+          {/* Sub-tab bar — overflow-x scroll for 5 tabs at small widths */}
+          <div style={{
+            display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg-secondary)', flexShrink: 0,
+            overflowX: 'auto', scrollbarWidth: 'none',
+          }}>
             {TABS.map(tab => (
               <button
                 key={tab.key}
@@ -370,9 +387,10 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
                 style={{
                   padding: '9px 16px', fontSize: '13px', border: 'none', cursor: 'pointer', background: 'transparent',
                   fontWeight: activeTab === tab.key ? 600 : 400,
-                  color: activeTab === tab.key ? 'var(--primary)' : 'var(--muted)',
-                  borderBottom: activeTab === tab.key ? '2px solid var(--primary)' : '2px solid transparent',
+                  color: activeTab === tab.key ? 'var(--accent)' : 'var(--muted)',
+                  borderBottom: activeTab === tab.key ? '2px solid var(--accent)' : '2px solid transparent',
                   transition: 'color 0.15s',
+                  whiteSpace: 'nowrap', minWidth: 'fit-content',
                 }}
               >
                 {tab.label}
@@ -393,7 +411,21 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
                   onDeleteField={handleDeleteField}
                   inheritedFields={inheritedFields}
                   onConstrainField={field => setConstrainField(field)}
+                  editingLayer={editingLayer}
+                  viewMode={viewMode}
                 />
+              </div>
+            )}
+
+            {activeTab === 'views' && (
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <ViewsBuilder entity={entity} editingLayer={editingLayer} />
+              </div>
+            )}
+
+            {activeTab === 'actions' && (
+              <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <ActionsPanel entity={entity} entityType={entityType} editingLayer={editingLayer} />
               </div>
             )}
 
@@ -402,6 +434,7 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
                 <SchemaDiffViewer
                   entityType={entityType}
                   entity={entity}
+                  editingLayer={editingLayer}
                 />
               </div>
             )}

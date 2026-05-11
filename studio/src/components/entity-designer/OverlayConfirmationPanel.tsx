@@ -25,7 +25,7 @@ export default function OverlayConfirmationPanel({ field, entityType, onConfirm,
   return (
     <div style={{ padding: '16px', borderTop: '1px solid var(--border)', background: 'var(--bg-secondary)', flexShrink: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <Layers size={15} style={{ color: 'var(--primary)' }} />
+        <Layers size={15} style={{ color: 'var(--accent)' }} />
         <span style={{ fontWeight: 600, fontSize: '13px' }}>Confirm Overlay Operation</span>
       </div>
 

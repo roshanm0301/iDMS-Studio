@@ -1,17 +1,12 @@
 import { useState } from 'react';
-import { ArrowRight, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useEntityDesignerStore } from '../../hooks/useEntityDesignerStore';
 import type { EntityDefinition, FieldLifecycleState, LifecycleTransitionMeta } from '../../types/entityDesigner';
+import { LIFECYCLE_CONFIG } from '../../utils/entityDesignerConstants';
 
 interface Props {
   entity: EntityDefinition;
 }
-
-const LIFECYCLE_CONFIG: Record<FieldLifecycleState, { label: string; color: string; icon: React.ElementType }> = {
-  draft:    { label: 'Draft',    color: '#6b7280', icon: Clock },
-  active:   { label: 'Active',   color: '#10b981', icon: CheckCircle },
-  disabled: { label: 'Disabled', color: '#ef4444', icon: XCircle },
-};
 
 const ALLOWED: Record<FieldLifecycleState, FieldLifecycleState[]> = {
   draft:    ['active', 'disabled'],

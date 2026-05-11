@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import type {
   EntityDefinition, FieldInstance, FieldLifecycleState,
   LifecycleTransitionMeta, SchemaSubTab, AddFieldMode, EntityStatus,
+  EntityView, ViewFieldConfig,
 } from '../types/entityDesigner';
 import { MOCK_ENTITIES } from '../data/entityDesignerData';
 
@@ -33,6 +34,17 @@ interface EntityDesignerStore {
     nextState: FieldLifecycleState,
     meta?: LifecycleTransitionMeta,
   ) => { success: boolean; error?: string };
+
+  // ── View mutations ────────────────────────────────────────
+  createView: (entityType: string, view: EntityView) => void;
+  updateView: (entityType: string, viewId: string, patch: Partial<EntityView>) => void;
+  deleteView: (entityType: string, viewId: string) => void;
+  updateViewFieldConfig: (entityType: string, viewId: string, fieldId: string, patch: Partial<ViewFieldConfig>) => void;
+
+  // ── Reverse relation panel overrides ─────────────────────
+  // key: targetEntityType → Record<"sourceEntity:sourceField", showInPanel>
+  reverseRelationPanelOverrides: Record<string, Record<string, boolean>>;
+  setReverseRelationPanelOverride: (targetEntityType: string, key: string, show: boolean) => void;
 
   // ── UI state ──────────────────────────────────────────────
   activeEntityType: string | null;
@@ -81,7 +93,9 @@ export const useEntityDesignerStore = create<EntityDesignerStore>((set, get) => 
 
   updateEntity: (entityType, patch) => {
     set(s => {
-      const existing = s.savedEntities[entityType];
+      // Fall back to MOCK_ENTITIES so we can update mock entities too (consistent with saveSchemaField)
+      const existing = s.savedEntities[entityType]
+        ?? MOCK_ENTITIES.find(e => e.entityType === entityType);
       if (!existing) return s;
       return {
         savedEntities: {
@@ -102,7 +116,8 @@ export const useEntityDesignerStore = create<EntityDesignerStore>((set, get) => 
 
   setEntityStatus: (entityType, status) => {
     set(s => {
-      const entity = s.savedEntities[entityType];
+      const entity = s.savedEntities[entityType]
+        ?? MOCK_ENTITIES.find(e => e.entityType === entityType);
       if (!entity) return s;
       return {
         savedEntities: {
@@ -199,6 +214,106 @@ export const useEntityDesignerStore = create<EntityDesignerStore>((set, get) => 
     get().showToast(`Field lifecycle changed to "${nextState}"`, 'success');
     return { success: true };
   },
+
+  // ── View mutations ────────────────────────────────────────
+  createView: (entityType, view) => {
+    set(s => {
+      const entity = s.savedEntities[entityType]
+        ?? MOCK_ENTITIES.find(e => e.entityType === entityType);
+      if (!entity) return s;
+      return {
+        savedEntities: {
+          ...s.savedEntities,
+          [entityType]: {
+            ...entity,
+            views: [...(entity.views ?? []), view],
+            lastModified: new Date().toISOString(),
+          },
+        },
+      };
+    });
+    get().showToast(`View "${view.label}" created`, 'success');
+  },
+
+  updateView: (entityType, viewId, patch) => {
+    set(s => {
+      const entity = s.savedEntities[entityType]
+        ?? MOCK_ENTITIES.find(e => e.entityType === entityType);
+      if (!entity) return s;
+      return {
+        savedEntities: {
+          ...s.savedEntities,
+          [entityType]: {
+            ...entity,
+            views: (entity.views ?? []).map(v =>
+              v.viewId === viewId ? { ...v, ...patch } : v
+            ),
+            lastModified: new Date().toISOString(),
+          },
+        },
+      };
+    });
+  },
+
+  deleteView: (entityType, viewId) => {
+    set(s => {
+      const entity = s.savedEntities[entityType]
+        ?? MOCK_ENTITIES.find(e => e.entityType === entityType);
+      if (!entity) return s;
+      return {
+        savedEntities: {
+          ...s.savedEntities,
+          [entityType]: {
+            ...entity,
+            views: (entity.views ?? []).filter(v => v.viewId !== viewId),
+            lastModified: new Date().toISOString(),
+          },
+        },
+      };
+    });
+    get().showToast('View deleted', 'info');
+  },
+
+  updateViewFieldConfig: (entityType, viewId, fieldId, patch) => {
+    set(s => {
+      const entity = s.savedEntities[entityType]
+        ?? MOCK_ENTITIES.find(e => e.entityType === entityType);
+      if (!entity) return s;
+      return {
+        savedEntities: {
+          ...s.savedEntities,
+          [entityType]: {
+            ...entity,
+            views: (entity.views ?? []).map(v => {
+              if (v.viewId !== viewId) return v;
+              const existing = v.fieldConfig.find(fc => fc.fieldId === fieldId);
+              const fieldConfig = existing
+                ? v.fieldConfig.map(fc =>
+                    fc.fieldId === fieldId ? { ...fc, ...patch } : fc
+                  )
+                : [...v.fieldConfig, { fieldId, visible: true, ...patch }];
+              return { ...v, fieldConfig };
+            }),
+            lastModified: new Date().toISOString(),
+          },
+        },
+      };
+    });
+  },
+
+  // ── Reverse relation panel overrides ─────────────────────
+  reverseRelationPanelOverrides: {},
+
+  setReverseRelationPanelOverride: (targetEntityType, key, show) =>
+    set(s => ({
+      reverseRelationPanelOverrides: {
+        ...s.reverseRelationPanelOverrides,
+        [targetEntityType]: {
+          ...(s.reverseRelationPanelOverrides[targetEntityType] ?? {}),
+          [key]: show,
+        },
+      },
+    })),
 
   // ── UI state ──────────────────────────────────────────────
   activeEntityType: null,

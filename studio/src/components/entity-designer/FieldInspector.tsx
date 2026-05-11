@@ -2,11 +2,11 @@
 // FieldInspector — Right panel for Entity Designer
 // Inline-editable common properties + accordion detail sections
 // ============================================================
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   ChevronDown, ChevronRight, Lock, Tag, Database, Settings,
   Shield, Layers, GitBranch, CheckCircle, AlertTriangle, XCircle,
-  Eye, EyeOff, Edit,
+  Eye, EyeOff, Edit, ArrowLeftRight, ExternalLink,
 } from 'lucide-react';
 import type {
   EntityDefinition, FieldInstance, DataClassification,
@@ -14,9 +14,12 @@ import type {
 } from '../../types/entityDesigner';
 import type { LayerCode } from '../../types';
 import DependencyDetailsPanel from './DependencyDetailsPanel';
-import { getCompileReadiness } from '../../data/mockService';
+import { getCompileReadiness, getEntityDefinitions } from '../../data/mockService';
 import { LAYER_COLORS, LIFECYCLE_CONFIG } from '../../utils/entityDesignerConstants';
 import { useEntityDesignerStore } from '../../hooks/useEntityDesignerStore';
+import { computeStorageType, STORAGE_TYPE_LABELS } from '../../utils/storageTypeComputer';
+import { computeReverseRelations } from '../../utils/reverseRelationComputer';
+import { useNavigate } from 'react-router-dom';
 
 // Valid lifecycle transitions (mirrors store — kept local to avoid circular imports)
 const ALLOWED_TRANSITIONS: Record<FieldLifecycleState, FieldLifecycleState[]> = {
@@ -46,19 +49,16 @@ interface Props {
   onSaveField?: (field: FieldInstance) => void;
 }
 
-// ── Classification config ────────────────────────────────────
+// ── Classification config (4-value system) ───────────────────
 const CLASS_CONFIG: Record<DataClassification, { label: string; color: string }> = {
-  public:         { label: 'Public',          color: '#059669' },
-  internal:       { label: 'Internal',        color: '#2563eb' },
-  confidential:   { label: 'Confidential',    color: '#7c3aed' },
-  regulated:      { label: 'Regulated',       color: '#d97706' },
-  pii:            { label: 'PII',             color: '#dc2626' },
-  financial:      { label: 'Financial',       color: '#c2410c' },
-  audit_sensitive:{ label: 'Audit Sensitive', color: '#991b1b' },
+  open:       { label: 'Open',       color: '#16a34a' },
+  internal:   { label: 'Internal',   color: '#6b7280' },
+  sensitive:  { label: 'Sensitive',  color: '#d97706' },
+  regulated:  { label: 'Regulated',  color: '#dc2626' },
 };
 
 const CLASSIFICATION_OPTIONS: DataClassification[] = [
-  'public', 'internal', 'confidential', 'regulated', 'pii', 'financial', 'audit_sensitive',
+  'open', 'internal', 'sensitive', 'regulated',
 ];
 
 const PRESENCE_LABELS: Record<PresenceBehavior, string> = {
@@ -79,7 +79,7 @@ function Toggle({ value, onChange, disabled }: { value: boolean; onChange: (v: b
       style={{
         width: '32px', height: '18px', borderRadius: '9px', border: 'none',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        background: value ? 'var(--primary)' : 'var(--border)',
+        background: value ? 'var(--accent)' : 'var(--border)',
         position: 'relative', opacity: disabled ? 0.5 : 1, flexShrink: 0,
         transition: 'background 0.15s',
       }}
@@ -136,7 +136,16 @@ function Bool({ v }: { v: boolean }) {
 }
 
 // ── Entity Readiness Checklist (shown when no field selected) ─
-function EntityReadinessChecklist({ entity }: { entity: EntityDefinition }) {
+function EntityReadinessChecklist({
+  entity,
+  reverseRelations,
+  onNavigateToEntity,
+}: {
+  entity: EntityDefinition;
+  reverseRelations: ReturnType<typeof computeReverseRelations>;
+  onNavigateToEntity: (entityType: string) => void;
+}) {
+  const { reverseRelationPanelOverrides, setReverseRelationPanelOverride } = useEntityDesignerStore();
   const readiness = getCompileReadiness(entity.entityType);
   const hasTitle = entity.fields.some(f => f.behaviors.includeInLookupDisplay && f.lifecycle === 'active');
   const hasDesc = !!entity.description;
@@ -153,7 +162,7 @@ function EntityReadinessChecklist({ entity }: { entity: EntityDefinition }) {
   return (
     <div style={{ padding: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-        <CheckCircle size={16} style={{ color: 'var(--primary)' }} />
+        <CheckCircle size={16} style={{ color: 'var(--accent)' }} />
         <span style={{ fontWeight: 700, fontSize: '14px' }}>Entity Readiness</span>
       </div>
 
@@ -210,6 +219,49 @@ function EntityReadinessChecklist({ entity }: { entity: EntityDefinition }) {
         </div>
       )}
 
+      {/* Reverse Relations — entities that reference this one */}
+      {reverseRelations.length > 0 && (
+        <div style={{ marginTop: '16px' }}>
+          <div style={{ fontWeight: 600, fontSize: '11px', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <ArrowLeftRight size={11} /> Referenced By ({reverseRelations.length})
+          </div>
+          {reverseRelations.map(rel => {
+            const panelKey = `${rel.sourceEntity}:${rel.sourceField}`;
+            const showInPanel = reverseRelationPanelOverrides[entity.entityType]?.[panelKey] ?? rel.showInPanel;
+            return (
+              <div
+                key={panelKey}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--bg-secondary)', borderRadius: '5px', marginBottom: '4px', fontSize: '12px' }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontWeight: 600 }}>{rel.sourceEntityLabel}</span>
+                  <span style={{ color: 'var(--muted)', marginLeft: 5 }}>via</span>
+                  <code style={{ fontFamily: 'monospace', fontSize: '11px', marginLeft: 5, color: 'var(--muted)' }}>{rel.sourceField}</code>
+                </div>
+                {/* Sub-panel visibility toggle */}
+                <label
+                  title={showInPanel ? 'Shown as sub-panel on detail view — click to hide' : 'Hidden from detail view sub-panels — click to show'}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '11px', color: showInPanel ? 'var(--accent)' : 'var(--muted)', flexShrink: 0 }}>
+                  <input
+                    type="checkbox"
+                    checked={showInPanel}
+                    onChange={e => setReverseRelationPanelOverride(entity.entityType, panelKey, e.target.checked)}
+                    style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
+                  />
+                  Panel
+                </label>
+                <button
+                  onClick={() => onNavigateToEntity(rel.sourceEntity)}
+                  title={`Open ${rel.sourceEntityLabel} schema`}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '3px', fontSize: '11px', padding: '2px 4px' }}>
+                  <ExternalLink size={11} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div style={{ marginTop: '12px', fontSize: '11px', color: 'var(--muted)', textAlign: 'center' }}>
         Click any field in the grid to inspect its details
       </div>
@@ -220,6 +272,7 @@ function EntityReadinessChecklist({ entity }: { entity: EntityDefinition }) {
 // ── Main Component ────────────────────────────────────────────
 export default function FieldInspector({ entity, selectedField, onEditField, onSaveField }: Props) {
   const { setFieldLifecycle, savedEntities } = useEntityDesignerStore();
+  const navigate = useNavigate();
 
   // Local label draft — edited inline, saved on blur
   const [labelDraft, setLabelDraft] = useState(selectedField?.label ?? '');
@@ -229,8 +282,20 @@ export default function FieldInspector({ entity, selectedField, onEditField, onS
     setLabelDraft(selectedField?.label ?? '');
   }, [selectedField?.fieldId]);
 
+  // Compute reverse relations for the entity-level view
+  const reverseRelations = useMemo(() => {
+    const allEntities = getEntityDefinitions(savedEntities);
+    return computeReverseRelations(entity.entityType, allEntities);
+  }, [entity.entityType, savedEntities]);
+
   if (!selectedField) {
-    return <EntityReadinessChecklist entity={entity} />;
+    return (
+      <EntityReadinessChecklist
+        entity={entity}
+        reverseRelations={reverseRelations}
+        onNavigateToEntity={(et) => navigate(`/admin/studio/entities/${et}/schema`)}
+      />
+    );
   }
 
   const f = selectedField;
@@ -282,6 +347,22 @@ export default function FieldInspector({ entity, selectedField, onEditField, onS
           <span style={{ fontSize: '11px', fontWeight: 600, color: lcCfg.color, flexShrink: 0 }}>
             {lcCfg.label}
           </span>
+
+          {/* Edit Field button — P1-05 */}
+          {onEditField && (
+            <button
+              className="btn btn-ghost"
+              title={f.protected ? 'Protected fields have limited editing' : 'Open full field editor'}
+              onClick={() => onEditField(f)}
+              style={{
+                padding: '3px 8px', fontSize: '11px', display: 'flex', alignItems: 'center',
+                gap: '3px', flexShrink: 0, color: 'var(--accent)',
+                border: '1px solid var(--accent)', borderRadius: '5px',
+              }}
+            >
+              <Edit size={11} /> Edit
+            </button>
+          )}
         </div>
 
         <code style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--muted)' }}>{f.fieldId}</code>
@@ -346,8 +427,8 @@ export default function FieldInspector({ entity, selectedField, onEditField, onS
                   title={v.charAt(0).toUpperCase() + v.slice(1)}
                   style={{
                     padding: '3px 8px', fontSize: '11px', borderRadius: '4px',
-                    border: `1px solid ${active ? 'var(--primary)' : 'var(--border)'}`,
-                    background: active ? 'var(--primary)' : 'var(--bg-secondary)',
+                    border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+                    background: active ? 'var(--accent)' : 'var(--bg-secondary)',
                     color: active ? '#fff' : 'var(--muted)',
                     cursor: f.protected ? 'not-allowed' : 'pointer',
                     display: 'flex', alignItems: 'center', gap: '4px',
@@ -437,6 +518,48 @@ export default function FieldInspector({ entity, selectedField, onEditField, onS
           <KV k="Field ID" v={<code style={{ fontFamily: 'monospace', fontSize: '11px' }}>{f.fieldId}</code>} />
           {f.attributeRef && <KV k="Catalog Ref" v={<code style={{ fontFamily: 'monospace', fontSize: '11px' }}>{f.attributeRef}</code>} />}
           <KV k="Protected" v={f.protected ? <span style={{ color: '#7c3aed', fontWeight: 600 }}>Yes <Lock size={11} /></span> : 'No'} />
+
+          {/* Storage Type badge */}
+          {(() => {
+            const st = computeStorageType(f);
+            const si = STORAGE_TYPE_LABELS[st];
+            return (
+              <KV k="Storage" v={
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{
+                    fontSize: '11px', padding: '1px 7px', borderRadius: '4px',
+                    background: `${si.color}18`, color: si.color, fontWeight: 600,
+                  }}>
+                    {si.label}
+                  </span>
+                  <span title={si.hint} style={{ color: 'var(--muted)', cursor: 'help', fontSize: '11px' }}>ⓘ</span>
+                </span>
+              } />
+            );
+          })()}
+
+          {/* View Participation */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '7px', fontSize: '12px' }}>
+            <span style={{ color: 'var(--muted)', flexShrink: 0 }}>View Participation</span>
+            <select
+              value={f.viewParticipation ?? 'list_and_form'}
+              onChange={e => {
+                if (f.protected) return;
+                saveField({ viewParticipation: e.target.value as 'list_and_form' | 'form_only' | 'explicit' });
+              }}
+              disabled={f.protected}
+              style={{
+                fontSize: '11px', padding: '3px 6px', borderRadius: '4px',
+                border: '1px solid var(--border)', background: 'var(--bg-secondary)',
+                color: 'var(--text)', cursor: f.protected ? 'not-allowed' : 'pointer',
+                maxWidth: '175px',
+              }}
+            >
+              <option value="list_and_form">Lists &amp; Forms (default)</option>
+              <option value="form_only">Forms only</option>
+              <option value="explicit">Explicit (manual)</option>
+            </select>
+          </div>
         </Section>
 
         {/* Section 2: Data Type */}

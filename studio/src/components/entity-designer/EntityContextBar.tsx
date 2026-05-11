@@ -1,6 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Save, CheckCircle, AlertTriangle, XCircle, ChevronDown, Braces, ArrowRight, Lock } from 'lucide-react';
+import { Save, CheckCircle, AlertTriangle, XCircle, ChevronDown, Braces, ArrowRight, Lock, Layers } from 'lucide-react';
 import type { EntityDefinition, EntityStatus } from '../../types/entityDesigner';
+import type { LayerCode } from '../../types';
+import { LAYER_LABELS, LAYER_COLORS } from '../../utils/entityDesignerConstants';
+
+const LAYER_OPTIONS: LayerCode[] = ['platform', 'vertical', 'tenant', 'node', 'role'];
 
 interface Props {
   entity: EntityDefinition;
@@ -10,6 +14,11 @@ interface Props {
   compileWarningCount: number;
   onShowIssues: () => void;
   onShowSchemaPreview: () => void;
+  // P1-01 / P1-02
+  editingLayer?: LayerCode;
+  onEditingLayerChange?: (layer: LayerCode) => void;
+  viewMode?: 'delta' | 'resolved';
+  onViewModeChange?: (mode: 'delta' | 'resolved') => void;
 }
 
 // ── Status config ─────────────────────────────────────────────
@@ -197,6 +206,8 @@ export default function EntityContextBar({
   entity, onSaveDraft,
   onStatusChange, compileErrorCount, compileWarningCount,
   onShowIssues, onShowSchemaPreview,
+  editingLayer = 'tenant', onEditingLayerChange,
+  viewMode = 'delta', onViewModeChange,
 }: Props) {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
@@ -262,6 +273,52 @@ export default function EntityContextBar({
               onTransition={handleTransition}
             />
           )}
+        </div>
+      </div>
+
+      {/* Editing layer + view mode — P1-01, P1-02 */}
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        {/* Editing as layer selector */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Layers size={13} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+          <span style={{ fontSize: '11px', color: 'var(--muted)', whiteSpace: 'nowrap' }}>Editing as</span>
+          <select
+            value={editingLayer}
+            onChange={e => onEditingLayerChange?.(e.target.value as LayerCode)}
+            style={{
+              fontSize: '12px', fontWeight: 600,
+              color: LAYER_COLORS[editingLayer],
+              background: LAYER_COLORS[editingLayer] + '15',
+              border: `1px solid ${LAYER_COLORS[editingLayer]}40`,
+              borderRadius: '6px', padding: '3px 6px', cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            {LAYER_OPTIONS.map(l => (
+              <option key={l} value={l} style={{ color: 'inherit', background: 'var(--bg)' }}>
+                {LAYER_LABELS[l]}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* View mode toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
+          {(['delta', 'resolved'] as const).map(mode => (
+            <button
+              key={mode}
+              onClick={() => onViewModeChange?.(mode)}
+              style={{
+                fontSize: '11px', fontWeight: viewMode === mode ? 700 : 400,
+                padding: '3px 9px', border: 'none', cursor: 'pointer',
+                background: viewMode === mode ? 'var(--accent)' : 'transparent',
+                color: viewMode === mode ? '#fff' : 'var(--muted)',
+                transition: 'all 0.15s',
+              }}
+            >
+              {mode === 'delta' ? 'Delta' : 'Resolved'}
+            </button>
+          ))}
         </div>
       </div>
 

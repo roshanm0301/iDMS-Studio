@@ -3,18 +3,20 @@ import {
   X, Search, BookOpen, FileText, AlertTriangle,
   ChevronDown, ChevronRight, Lock, Check, Info,
 } from 'lucide-react';
-import { getAdvancedAttributeCatalog } from '../../data/mockService';
+import { getAdvancedAttributeCatalog, getEntityDefinitions } from '../../data/mockService';
 import { useEntityDesignerStore } from '../../hooks/useEntityDesignerStore';
 import FieldTypeConfigurator from './FieldTypeConfigurator';
 import OverlayConfirmationPanel from './OverlayConfirmationPanel';
 import type {
   FieldInstance, FieldTypeCode, DataClassification, AdvancedCatalogAttribute,
   OverlayOperation, PresenceBehavior, EditabilityBehavior, VisibilityBehavior,
-  AuditBehavior, DefaultSource,
+  AuditBehavior, DefaultSource, FieldDisplayFormat, DateFormatOption,
 } from '../../types/entityDesigner';
 import type { LayerCode } from '../../types';
-import { toSlug } from '../../utils/entityDesignerUtils';
+import { toSlug, defaultDisplayFormat } from '../../utils/entityDesignerUtils';
 import { LAYER_COLORS, LAYER_LABELS } from '../../utils/entityDesignerConstants';
+import { PLATFORM_PRESETS } from '../../data/attributePresets';
+import type { AttributePreset } from '../../data/attributePresets';
 
 // ─────────────────────────────────────────────────────────────
 // Types & Constants
@@ -252,7 +254,7 @@ export default function AddFieldDrawer({
   entityType, entityLabel, existingFieldIds, onClose, editingField, constrainMode,
 }: Props) {
   const catalog = useMemo(() => getAdvancedAttributeCatalog(), []);
-  const { setPendingField, confirmPendingField } = useEntityDesignerStore();
+  const { setPendingField, confirmPendingField, savedEntities } = useEntityDesignerStore();
 
   const isConstrainMode = !!constrainMode;
   const isEditMode      = !!editingField && !isConstrainMode;
@@ -273,6 +275,14 @@ export default function AddFieldDrawer({
   const [showConfirmPanel, setShowConfirmPanel]   = useState(false);
   const [catalogSearch, setCatalogSearch]         = useState('');
   const [fieldIdManuallySet, setFieldIdManuallySet] = useState(false);
+  const [appliedPreset, setAppliedPreset]           = useState<AttributePreset | null>(null);
+
+  // ── Derived / memos ────────────────────────────────────────
+  /** Domain of the current entity — used to filter preset suggestions */
+  const entityDomain = useMemo(() => {
+    const allEntities = getEntityDefinitions(savedEntities);
+    return allEntities.find(e => e.entityType === entityType)?.domain?.toLowerCase() ?? '';
+  }, [savedEntities, entityType]);
 
   // ── Derived ────────────────────────────────────────────────
   const isLayerLocked = !isEditMode && source === 'catalog' && !!selectedCatalogEntry;
@@ -341,12 +351,14 @@ export default function AddFieldDrawer({
   };
 
   const handleTypeChange = (newType: FieldTypeCode) => {
+    setAppliedPreset(null); // clear preset indicator when type changes manually
     const isComputed  = newType === 'computed';
     const inferred    = inferClassification(newType);
     const isSensitive = inferred === 'sensitive' || inferred === 'regulated';
     setField(f => ({
       ...f,
       fieldType: newType, typeConfig: {},
+      displayFormat: defaultDisplayFormat(newType), // apply sensible format defaults for the new type
       classification: inferred,
       behaviors: {
         ...f.behaviors,
@@ -873,6 +885,74 @@ export default function AddFieldDrawer({
                 </div>
               )}
 
+              {/* ── Apply Preset — local fields only ── */}
+              {source === 'local' && !isConstrainMode && (
+                <div style={{ marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--muted)', flexShrink: 0 }}>Quick-fill from preset:</span>
+                    <select
+                      className="search-input"
+                      style={{ fontSize: '12px', flex: 1 }}
+                      defaultValue=""
+                      onChange={e => {
+                        const presetId = e.target.value;
+                        if (!presetId) return;
+                        const preset = PLATFORM_PRESETS.find(p => p.presetId === presetId);
+                        if (!preset) return;
+                        setAppliedPreset(preset);
+                        setField(f => ({
+                          ...f,
+                          fieldType: preset.fieldType,
+                          classification: preset.classification,
+                          typeConfig: { ...f.typeConfig, ...preset.typeConfig },
+                          displayFormat: defaultDisplayFormat(preset.fieldType),
+                          governance: { ...f.governance, ...(preset.governanceOverrides ?? {}) },
+                        }));
+                        // Reset select to placeholder so it can be re-selected
+                        e.target.value = '';
+                      }}
+                    >
+                      <option value="">Apply Preset…</option>
+                      {PLATFORM_PRESETS
+                        .filter(p =>
+                          !p.appliesTo ||
+                          p.appliesTo.includes('all') ||
+                          p.appliesTo.some(tag => entityDomain.includes(tag))
+                        )
+                        .map(p => (
+                          <option key={p.presetId} value={p.presetId}>
+                            {p.label} — {p.description}
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+
+                  {/* Applied preset banner */}
+                  {appliedPreset && (
+                    <div style={{
+                      marginTop: '8px', padding: '8px 12px',
+                      background: 'hsl(22 100% 51% / 0.06)',
+                      border: '1px solid hsl(22 100% 51% / 0.25)',
+                      borderRadius: '8px', fontSize: '12px',
+                      display: 'flex', gap: '8px', alignItems: 'center',
+                    }}>
+                      <Info size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                      <span style={{ flex: 1 }}>
+                        Preset applied: <strong>{appliedPreset.label}</strong> — settings pre-filled below. Override any value freely.
+                      </span>
+                      <button
+                        onClick={() => setAppliedPreset(null)}
+                        style={{
+                          fontSize: '11px', color: 'var(--muted)',
+                          background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px',
+                        }}
+                      >✕ Clear</button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Type configurator */}
               {!isConstrainMode ? (
                 <FieldTypeConfigurator
@@ -888,6 +968,139 @@ export default function AddFieldDrawer({
                   <div>Type configuration is locked for inherited fields.</div>
                   <div style={{ fontSize: '11px', marginTop: '4px' }}>Proceed to Behavior to set constraints.</div>
                 </div>
+              )}
+
+              {/* ── Display Format — numeric/date/time types only ── */}
+              {!isConstrainMode && (['number', 'decimal', 'currency', 'percentage', 'date', 'datetime', 'time'] as FieldTypeCode[]).includes(field.fieldType) && (
+                <>
+                  <SectionDivider label="Display Format" />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+
+                    {/* Decimal Places — numeric types */}
+                    {(['number', 'decimal', 'currency', 'percentage'] as FieldTypeCode[]).includes(field.fieldType) && (
+                      <div>
+                        <label className="form-label">Decimal Places</label>
+                        <select className="search-input" style={{ width: '100%' }}
+                          value={field.displayFormat?.decimalPlaces ?? defaultDisplayFormat(field.fieldType).decimalPlaces ?? 2}
+                          onChange={e => setField(f => ({
+                            ...f,
+                            displayFormat: {
+                              ...defaultDisplayFormat(f.fieldType),
+                              ...f.displayFormat,
+                              decimalPlaces: Number(e.target.value) as FieldDisplayFormat['decimalPlaces'],
+                            },
+                          }))}>
+                          {([0, 1, 2, 3, 4, 5, 6] as const).map(n => (
+                            <option key={n} value={n}>{n} decimal{n !== 1 ? 's' : ''}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Negative Display — numeric types */}
+                    {(['number', 'decimal', 'currency', 'percentage'] as FieldTypeCode[]).includes(field.fieldType) && (
+                      <div>
+                        <label className="form-label">Negative Numbers</label>
+                        <select className="search-input" style={{ width: '100%' }}
+                          value={field.displayFormat?.negativeDisplay ?? 'minus_prefix'}
+                          onChange={e => setField(f => ({
+                            ...f,
+                            displayFormat: {
+                              ...defaultDisplayFormat(f.fieldType),
+                              ...f.displayFormat,
+                              negativeDisplay: e.target.value as FieldDisplayFormat['negativeDisplay'],
+                            },
+                          }))}>
+                          <option value="minus_prefix">Minus prefix (−1,234)</option>
+                          <option value="parentheses">Parentheses ((1,234))</option>
+                          <option value="red_text">Red text</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Thousand Separator — numeric types */}
+                    {(['number', 'decimal', 'currency', 'percentage'] as FieldTypeCode[]).includes(field.fieldType) && (
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <label className="form-label">Thousand Separator</label>
+                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                          {([
+                            { value: 'indian'        as const, label: 'Indian',        example: '1,23,456.78' },
+                            { value: 'international' as const, label: 'International', example: '123,456.78' },
+                            { value: 'none'          as const, label: 'None',          example: '123456.78' },
+                          ]).map(opt => {
+                            const selected = (field.displayFormat?.thousandSeparator ?? (field.fieldType === 'currency' ? 'indian' : 'international')) === opt.value;
+                            return (
+                              <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                <input type="radio" name="thousandSep"
+                                  checked={selected}
+                                  onChange={() => setField(f => ({
+                                    ...f,
+                                    displayFormat: {
+                                      ...defaultDisplayFormat(f.fieldType),
+                                      ...f.displayFormat,
+                                      thousandSeparator: opt.value,
+                                    },
+                                  }))} />
+                                <span style={{ fontSize: '12px', fontWeight: selected ? 600 : 400 }}>{opt.label}</span>
+                                <code style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: 'monospace', background: 'var(--bg-secondary)', padding: '1px 5px', borderRadius: '3px' }}>{opt.example}</code>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Date Format — date/datetime */}
+                    {(['date', 'datetime'] as FieldTypeCode[]).includes(field.fieldType) && (
+                      <div>
+                        <label className="form-label">Date Format</label>
+                        <select className="search-input" style={{ width: '100%' }}
+                          value={field.displayFormat?.dateFormat ?? 'dd/MM/yyyy'}
+                          onChange={e => setField(f => ({
+                            ...f,
+                            displayFormat: {
+                              ...defaultDisplayFormat(f.fieldType),
+                              ...f.displayFormat,
+                              dateFormat: e.target.value as DateFormatOption,
+                            },
+                          }))}>
+                          <option value="dd/MM/yyyy">dd/MM/yyyy — 31/12/2026</option>
+                          <option value="dd-MMM-yyyy">dd-MMM-yyyy — 31-Dec-2026</option>
+                          <option value="dd-MM-yyyy">dd-MM-yyyy — 31-12-2026</option>
+                          <option value="yyyy-MM-dd">yyyy-MM-dd — 2026-12-31 (ISO)</option>
+                          <option value="MMMM d, yyyy">MMMM d, yyyy — December 31, 2026</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Time Format — time/datetime */}
+                    {(['time', 'datetime'] as FieldTypeCode[]).includes(field.fieldType) && (
+                      <div>
+                        <label className="form-label">Time Format</label>
+                        <div style={{ display: 'flex', gap: '16px' }}>
+                          {(['24h', '12h'] as const).map(fmt => (
+                            <label key={fmt} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                              <input type="radio" name="timeFmt"
+                                checked={(field.displayFormat?.timeFormat ?? '24h') === fmt}
+                                onChange={() => setField(f => ({
+                                  ...f,
+                                  displayFormat: {
+                                    ...defaultDisplayFormat(f.fieldType),
+                                    ...f.displayFormat,
+                                    timeFormat: fmt,
+                                  },
+                                }))} />
+                              <span style={{ fontSize: '12px' }}>
+                                {fmt === '24h' ? '24-hour (14:30)' : '12-hour (2:30 PM)'}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                </>
               )}
             </div>
           )}

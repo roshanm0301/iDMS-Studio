@@ -26,7 +26,15 @@
       "Bash(node -e ' *)",
       "Bash(echo \"Exit: $?\")",
       "Bash(timeout 8)",
-      "Bash(findstr \":5176\")"
+      "Bash(findstr \":5176\")",
+      "mcp__Claude_in_Chrome__get_page_text",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(echo \"EXIT_CODE:$?\")",
+      "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/data/attributePresets.ts','utf8'\\); const m=c.match\\(/presetId: '\\([^']+\\)'/g\\); console.log\\(m?.join\\(', '\\)\\)\")",
+      "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/utils/storageTypeComputer.ts','utf8'\\); console.log\\(c.includes\\('computeStorageType'\\) ? 'OK' : 'MISSING'\\)\")",
+      "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/utils/reverseRelationComputer.ts','utf8'\\); console.log\\(c.includes\\('computeReverseRelations'\\) ? 'OK' : 'MISSING'\\)\")",
+      "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/components/entity-designer/ViewsBuilder.tsx','utf8'\\); console.log\\(c.includes\\('ViewsBuilder'\\) ? 'OK' : 'MISSING'\\)\")",
+      "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/components/entity-designer/ActionsPanel.tsx','utf8'\\); console.log\\(c.includes\\('ActionsPanel'\\) ? 'OK' : 'MISSING'\\)\")"
     ]
   }
 }

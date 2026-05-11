@@ -1,12 +1,16 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Edit, AlertTriangle, XCircle, CheckCircle, MinusCircle } from 'lucide-react';
-import { getSchemaDiff, getEntityDefinition } from '../../data/mockService';
+import { getSchemaDiff } from '../../data/mockService';
 import type { DiffSeverity, DiffEntry, EntityDefinition, SchemaDiff } from '../../types/entityDesigner';
+import type { LayerCode } from '../../types';
+import { LAYER_COLORS } from '../../utils/entityDesignerConstants';
 
 interface Props {
   entityType: string;
-  /** Full entity definition for Resolved Scope mode */
+  /** Full entity definition for Resolved Scope / Layer Delta modes */
   entity?: EntityDefinition;
+  /** Currently selected editing layer — used for Layer Delta mode */
+  editingLayer?: LayerCode | null;
 }
 
 const SEVERITY_CONFIG: Record<DiffSeverity, { label: string; color: string; bg: string }> = {
@@ -16,10 +20,11 @@ const SEVERITY_CONFIG: Record<DiffSeverity, { label: string; color: string; bg: 
   breaking: { label: 'Breaking', color: '#dc2626', bg: 'rgba(220,38,38,0.15)' },
 };
 
-type DiffMode = 'draft_vs_active' | 'resolved_scope';
+type DiffMode = 'draft_vs_active' | 'layer_delta' | 'resolved_scope';
 
 const MODE_DESCRIPTIONS: Record<DiffMode, string> = {
   draft_vs_active: 'All pending changes vs last compiled schema',
+  layer_delta:     'Only changes introduced at the currently selected editing layer',
   resolved_scope:  'Full merge diff: draft state vs base resolved schema',
 };
 
@@ -61,10 +66,18 @@ function DiffSection({ title, entries, icon: Icon, color }: {
   );
 }
 
-export default function SchemaDiffViewer({ entityType, entity }: Props) {
+export default function SchemaDiffViewer({ entityType, entity, editingLayer = null }: Props) {
   const [mode, setMode] = useState<DiffMode>('draft_vs_active');
 
   const rawDiff = getSchemaDiff(entityType);
+
+  // Build a fieldId → sourceLayer lookup for layer-based filtering
+  const layerByFieldId = useMemo<Record<string, LayerCode>>(() => {
+    if (!entity) return {};
+    const map: Record<string, LayerCode> = {};
+    for (const f of entity.fields) map[f.fieldId] = f.sourceLayer;
+    return map;
+  }, [entity]);
 
   // Compute the effective diff based on the selected mode
   const diff = useMemo<SchemaDiff | undefined>(() => {
@@ -75,9 +88,26 @@ export default function SchemaDiffViewer({ entityType, entity }: Props) {
       return rawDiff;
     }
 
+    if (mode === 'layer_delta') {
+      // Filter all diff sections to only fields belonging to the currently selected editing layer.
+      // If no editingLayer is set, fall back to draft_vs_active.
+      if (!editingLayer) return rawDiff;
+      const filter = (entries: DiffEntry[]) =>
+        entries.filter(e => layerByFieldId[e.fieldId] === editingLayer);
+      return {
+        mode: 'layer_delta',
+        added:             filter(rawDiff.added),
+        changed:           filter(rawDiff.changed),
+        deprecated:        filter(rawDiff.deprecated),
+        disabled:          filter(rawDiff.disabled),
+        validationChanges: filter(rawDiff.validationChanges),
+        overlayChanges:    filter(rawDiff.overlayChanges),
+      };
+    }
+
     if (mode === 'resolved_scope') {
       // Simulate a resolved diff by identifying draft-lifecycle fields as "pending additions"
-      // and fields with recent overlayChanges as "pending changes".
+      // and disabled fields as recently disabled.
       if (!entity) return rawDiff;
 
       const draftFields = entity.fields.filter(f => f.lifecycle === 'draft');
@@ -89,29 +119,29 @@ export default function SchemaDiffViewer({ entityType, entity }: Props) {
         after: f.fieldType,
       }));
 
-      const deprecatedFields = entity.fields.filter(f => f.lifecycle === 'deprecated');
-      const resolvedDeprecated: DiffEntry[] = deprecatedFields.map(f => ({
+      const disabledFields = entity.fields.filter(f => f.lifecycle === 'disabled');
+      const resolvedDisabled: DiffEntry[] = disabledFields.map(f => ({
         fieldId: f.fieldId,
         label: f.label,
         severity: 'stricter' as DiffSeverity,
-        description: `Field is deprecated — consumers should migrate to replacement`,
+        description: `Field is disabled — currently hidden and non-editable`,
         before: 'active',
-        after: 'deprecated',
+        after: 'disabled',
       }));
 
       return {
         mode: 'resolved_scope',
         added: [...resolvedAdded, ...rawDiff.added],
         changed: rawDiff.changed,
-        deprecated: [...resolvedDeprecated, ...rawDiff.deprecated],
-        disabled: rawDiff.disabled,
+        deprecated: rawDiff.deprecated,
+        disabled: [...resolvedDisabled, ...rawDiff.disabled],
         validationChanges: rawDiff.validationChanges,
         overlayChanges: rawDiff.overlayChanges,
       };
     }
 
     return rawDiff;
-  }, [rawDiff, mode, entity]);
+  }, [rawDiff, mode, entity, editingLayer, layerByFieldId]);
 
   if (!rawDiff) {
     return (
@@ -135,22 +165,39 @@ export default function SchemaDiffViewer({ entityType, entity }: Props) {
           <h3 style={{ margin: '0 0 4px', fontSize: '15px' }}>Schema Diff</h3>
           <p style={{ margin: 0, fontSize: '12px', color: 'var(--muted)' }}>{MODE_DESCRIPTIONS[mode]}</p>
         </div>
-        <div style={{ display: 'flex', gap: '4px' }}>
-          {([
-            { value: 'draft_vs_active', label: 'Draft vs Active' },
-            { value: 'resolved_scope',  label: 'Resolved Scope' },
-          ] as const).map(opt => (
-            <button
-              key={opt.value}
-              className={`btn ${mode === opt.value ? 'btn-primary' : 'btn-ghost'}`}
-              style={{ fontSize: '12px', padding: '4px 10px' }}
-              onClick={() => setMode(opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+          {(['draft_vs_active', 'layer_delta', 'resolved_scope'] as DiffMode[]).map(m => {
+            let label = m === 'draft_vs_active' ? 'Draft vs Active'
+                      : m === 'resolved_scope'  ? 'Resolved Scope'
+                      : editingLayer ? `Layer: ${editingLayer}` : 'Layer Delta';
+            const extraStyle: React.CSSProperties = (m === 'layer_delta' && editingLayer && mode !== m)
+              ? { color: LAYER_COLORS[editingLayer] }
+              : {};
+            return (
+              <button
+                key={m}
+                className={`btn ${mode === m ? 'btn-primary' : 'btn-ghost'}`}
+                style={{ fontSize: '12px', padding: '4px 10px', ...extraStyle }}
+                onClick={() => setMode(m)}
+                title={MODE_DESCRIPTIONS[m]}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Layer Delta hint when no editing layer is selected */}
+      {mode === 'layer_delta' && !editingLayer && (
+        <div style={{
+          padding: '12px 14px', background: 'rgba(245,158,11,0.08)',
+          border: '1px solid rgba(245,158,11,0.3)', borderRadius: '8px', marginBottom: '14px',
+          fontSize: '12px', color: '#f59e0b',
+        }}>
+          Select a layer using "Editing as" in the context bar to filter the diff to that layer.
+        </div>
+      )}
 
       {!hasChanges ? (
         <div className="empty" style={{ padding: '24px' }}>

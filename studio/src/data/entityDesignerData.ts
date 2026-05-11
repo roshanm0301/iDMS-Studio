@@ -44,8 +44,6 @@ const defaultEntityBehaviors = (overrides?: Partial<EntityBehaviors>): EntityBeh
   workflowEnabled: true,
   auditable: true,
   softDelete: true,
-  allowAttachments: false,
-  allowBulkImport: false,
   allowDownstreamExtension: true,
   allowDownstreamRequirednessRelaxation: false,
   ...overrides,
@@ -61,7 +59,17 @@ export const ENTITY_TEMPLATES: EntityTemplate[] = [
     category: 'transaction',
     domain: 'Operations',
     description: 'A general-purpose transactional entity with workflow, audit trail, and approval support. Best for order-like documents.',
-    systemFields: ['Record ID', 'Status', 'Created By', 'Created At', 'Updated At', 'Tenant ID', 'Node ID', 'Version'],
+    displayNameFieldId: 'doc_number',
+    systemFields: [
+      { fieldId: 'record_id',  label: 'Record ID',     fieldType: 'text',       required: true,  protected: true,  systemOwned: true },
+      { fieldId: 'doc_number', label: 'Document No.',  fieldType: 'auto_number',required: true,  protected: true,  typeConfig: { codeSettingType: 'document', codeSettingId: 'dc_vehicle_order' } },
+      { fieldId: 'status',     label: 'Status',        fieldType: 'select',     required: true,  protected: true,  typeConfig: { valueSource: 'workflow' } },
+      { fieldId: 'created_by', label: 'Created By',    fieldType: 'text',       required: true,  systemOwned: true },
+      { fieldId: 'created_at', label: 'Created At',    fieldType: 'datetime',   required: true,  systemOwned: true },
+      { fieldId: 'updated_at', label: 'Updated At',    fieldType: 'datetime',   required: false, systemOwned: true },
+      { fieldId: 'tenant_id',  label: 'Tenant ID',     fieldType: 'text',       required: true,  systemOwned: true },
+      { fieldId: 'node_id',    label: 'Node ID',       fieldType: 'text',       required: true,  systemOwned: true },
+    ],
     suggestedGroups: ['Header', 'Line Items', 'Approval Info', 'Audit Trail'],
     workflowRecommendation: 'Draft → Submitted → Approved → Closed',
     icon: 'FileText',
@@ -72,7 +80,19 @@ export const ENTITY_TEMPLATES: EntityTemplate[] = [
     category: 'transaction',
     domain: 'Sales',
     description: 'Pre-configured for vehicle procurement orders in automotive dealerships. Includes OEM model reference, color, variant fields.',
-    systemFields: ['Record ID', 'Order Number (Auto)', 'Status', 'Created By', 'Created At', 'Updated At', 'Tenant ID', 'Node ID', 'Version', 'Booking Date'],
+    displayNameFieldId: 'order_number',
+    systemFields: [
+      { fieldId: 'record_id',        label: 'Record ID',      fieldType: 'text',       required: true,  protected: true,  systemOwned: true },
+      { fieldId: 'order_number',     label: 'Order Number',   fieldType: 'auto_number',required: true,  protected: true,  typeConfig: { codeSettingType: 'document', codeSettingId: 'dc_vehicle_order' } },
+      { fieldId: 'status',           label: 'Status',         fieldType: 'select',     required: true,  protected: true,  typeConfig: { valueSource: 'workflow' } },
+      { fieldId: 'booking_date',     label: 'Booking Date',   fieldType: 'date',       required: true  },
+      { fieldId: 'customer_id',      label: 'Customer',       fieldType: 'entity_ref', required: true,  typeConfig: { targetEntity: 'customer', keyField: 'record_id', displayField: 'full_name', searchFields: ['full_name', 'mobile'] } },
+      { fieldId: 'vehicle_model_id', label: 'Vehicle Model',  fieldType: 'entity_ref', required: true,  typeConfig: { targetEntity: 'vehicle_model', keyField: 'record_id', displayField: 'model_name', searchFields: ['model_name', 'model_code'] } },
+      { fieldId: 'created_by',       label: 'Created By',     fieldType: 'text',       required: true,  systemOwned: true },
+      { fieldId: 'created_at',       label: 'Created At',     fieldType: 'datetime',   required: true,  systemOwned: true },
+      { fieldId: 'updated_at',       label: 'Updated At',     fieldType: 'datetime',   required: false, systemOwned: true },
+      { fieldId: 'tenant_id',        label: 'Tenant ID',      fieldType: 'text',       required: true,  systemOwned: true },
+    ],
     suggestedGroups: ['Order Header', 'Vehicle Details', 'Customer Details', 'Commercial Terms', 'Tax & Charges', 'Attachments'],
     workflowRecommendation: 'Draft → Confirmed → OEM Submitted → Allotted → Delivered → Invoiced',
     icon: 'Car',
@@ -83,7 +103,19 @@ export const ENTITY_TEMPLATES: EntityTemplate[] = [
     category: 'transaction',
     domain: 'Service',
     description: 'Pre-configured for vehicle service jobs including job card, technician assignment, parts consumption, and labour.',
-    systemFields: ['Record ID', 'Job Card Number (Auto)', 'Status', 'Created By', 'Created At', 'Updated At', 'Tenant ID', 'Node ID', 'Version', 'Job Open Date'],
+    displayNameFieldId: 'job_card_number',
+    systemFields: [
+      { fieldId: 'record_id',       label: 'Record ID',         fieldType: 'text',       required: true,  protected: true,  systemOwned: true },
+      { fieldId: 'job_card_number', label: 'Job Card Number',   fieldType: 'auto_number',required: true,  protected: true,  typeConfig: { codeSettingType: 'document', codeSettingId: 'dc_job_card' } },
+      { fieldId: 'status',          label: 'Status',            fieldType: 'select',     required: true,  protected: true,  typeConfig: { valueSource: 'workflow' } },
+      { fieldId: 'job_open_date',   label: 'Job Open Date',     fieldType: 'date',       required: true  },
+      { fieldId: 'vehicle_reg_no',  label: 'Vehicle Reg. No.',  fieldType: 'text',       required: true  },
+      { fieldId: 'customer_id',     label: 'Customer',          fieldType: 'entity_ref', required: true,  typeConfig: { targetEntity: 'customer', keyField: 'record_id', displayField: 'full_name', searchFields: ['full_name', 'mobile'] } },
+      { fieldId: 'created_by',      label: 'Created By',        fieldType: 'text',       required: true,  systemOwned: true },
+      { fieldId: 'created_at',      label: 'Created At',        fieldType: 'datetime',   required: true,  systemOwned: true },
+      { fieldId: 'updated_at',      label: 'Updated At',        fieldType: 'datetime',   required: false, systemOwned: true },
+      { fieldId: 'tenant_id',       label: 'Tenant ID',         fieldType: 'text',       required: true,  systemOwned: true },
+    ],
     suggestedGroups: ['Job Header', 'Vehicle Info', 'Customer Info', 'Labour Items', 'Parts Used', 'Quality Check', 'Invoice'],
     workflowRecommendation: 'Open → In-Progress → Quality Check → Ready → Delivered → Invoiced',
     icon: 'Wrench',
@@ -94,7 +126,17 @@ export const ENTITY_TEMPLATES: EntityTemplate[] = [
     category: 'master',
     domain: 'Reference',
     description: 'For reference/master records like customers, dealers, vehicles. Includes lookup display fields and downstream referencing support.',
-    systemFields: ['Record ID', 'Code', 'Status', 'Created By', 'Created At', 'Updated At', 'Tenant ID', 'Is Active'],
+    displayNameFieldId: 'name',
+    systemFields: [
+      { fieldId: 'record_id',  label: 'Record ID',  fieldType: 'text',    required: true,  protected: true,  systemOwned: true },
+      { fieldId: 'code',       label: 'Code',       fieldType: 'text',    required: true,  protected: true  },
+      { fieldId: 'name',       label: 'Name',       fieldType: 'text',    required: true  },
+      { fieldId: 'status',     label: 'Status',     fieldType: 'select',  required: true,  protected: true,  typeConfig: { valueSource: 'workflow' } },
+      { fieldId: 'is_active',  label: 'Is Active',  fieldType: 'boolean', required: true  },
+      { fieldId: 'created_by', label: 'Created By', fieldType: 'text',    required: true,  systemOwned: true },
+      { fieldId: 'created_at', label: 'Created At', fieldType: 'datetime',required: true,  systemOwned: true },
+      { fieldId: 'tenant_id',  label: 'Tenant ID',  fieldType: 'text',    required: true,  systemOwned: true },
+    ],
     suggestedGroups: ['Identity', 'Classification', 'Contact', 'Custom Attributes'],
     workflowRecommendation: 'Draft → Active → Suspended → Archived',
     icon: 'Database',
@@ -105,7 +147,16 @@ export const ENTITY_TEMPLATES: EntityTemplate[] = [
     category: 'configuration',
     domain: 'System',
     description: 'For tenant or node-level configuration records like tax codes, pricing rules, and system parameters.',
-    systemFields: ['Config Key', 'Effective From', 'Effective To', 'Is Active', 'Created By', 'Updated At', 'Tenant ID'],
+    displayNameFieldId: 'config_key',
+    systemFields: [
+      { fieldId: 'config_key',     label: 'Config Key',     fieldType: 'text',    required: true,  protected: true  },
+      { fieldId: 'config_value',   label: 'Config Value',   fieldType: 'text',    required: true  },
+      { fieldId: 'effective_from', label: 'Effective From', fieldType: 'date',    required: true  },
+      { fieldId: 'effective_to',   label: 'Effective To',   fieldType: 'date',    required: false },
+      { fieldId: 'is_active',      label: 'Is Active',      fieldType: 'boolean', required: true  },
+      { fieldId: 'created_by',     label: 'Created By',     fieldType: 'text',    required: true,  systemOwned: true },
+      { fieldId: 'tenant_id',      label: 'Tenant ID',      fieldType: 'text',    required: true,  systemOwned: true },
+    ],
     suggestedGroups: ['Parameters', 'Effective Period', 'Applicability'],
     workflowRecommendation: 'Draft → Review → Active → Expired',
     icon: 'Settings',
@@ -120,12 +171,14 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
   {
     entityType: 'vehicle_order',
     label: 'Vehicle Order',
+    pluralLabel: 'Vehicle Orders',
     description: 'Represents a vehicle procurement order placed by a dealer. Tracks booking through delivery and invoicing.',
     category: 'transaction',
     domain: 'Sales',
     owningLayer: 'vertical',
     status: 'active',
-    behaviors: defaultEntityBehaviors({ allowAttachments: true, allowBulkImport: false }),
+    lookupEligible: false,
+    behaviors: defaultEntityBehaviors(),
     fields: [
       {
         fieldId: 'record_id',
@@ -388,6 +441,46 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
         order: 16,
       },
     ],
+    views: [
+      {
+        viewId: 'default_list',
+        label: 'All Orders',
+        viewType: 'list_view' as const,
+        isDefault: true,
+        owningLayer: 'platform' as const,
+        filterConditions: { logic: 'AND' as const, conditions: [] },
+        fieldConfig: [
+          { fieldId: 'order_number',     visible: true,  summaryType: 'count' as const,  textAlign: 'left' as const },
+          { fieldId: 'booking_date',     visible: true,  summaryType: 'none' as const,   groupInterval: 'month' as const, textAlign: 'left' as const },
+          { fieldId: 'customer_ref',     visible: true,  summaryType: 'none' as const,   textAlign: 'left' as const },
+          { fieldId: 'vehicle_model',    visible: true,  summaryType: 'none' as const,   textAlign: 'left' as const },
+          { fieldId: 'booking_amount',   visible: true,  summaryType: 'sum' as const,    textAlign: 'right' as const },
+          { fieldId: 'status',           visible: true,  summaryType: 'none' as const,   freezePosition: 'right' as const },
+        ],
+      },
+      {
+        viewId: 'booking_form',
+        label: 'Booking Form',
+        viewType: 'form_view' as const,
+        isDefault: true,
+        owningLayer: 'platform' as const,
+        sections: [
+          { sectionId: 'header',   label: 'Order Details',   columns: 2 as const, collapsible: false, defaultCollapsed: false },
+          { sectionId: 'customer', label: 'Customer Info',   columns: 2 as const, collapsible: true,  defaultCollapsed: false },
+          { sectionId: 'vehicle',  label: 'Vehicle Details', columns: 2 as const, collapsible: true,  defaultCollapsed: false },
+          { sectionId: 'amounts',  label: 'Amounts',         columns: 3 as const, collapsible: true,  defaultCollapsed: false },
+        ],
+        fieldConfig: [
+          { fieldId: 'order_number',     visible: true, sectionId: 'header',   readonly: true },
+          { fieldId: 'booking_date',     visible: true, sectionId: 'header' },
+          { fieldId: 'status',           visible: true, sectionId: 'header',   readonly: true },
+          { fieldId: 'customer_ref',     visible: true, sectionId: 'customer' },
+          { fieldId: 'vehicle_model',    visible: true, sectionId: 'vehicle' },
+          { fieldId: 'booking_amount',   visible: true, sectionId: 'amounts' },
+          { fieldId: 'discount_pct',     visible: true, sectionId: 'amounts' },
+        ],
+      },
+    ],
     createdAt: '2025-01-15T10:00:00Z',
     lastModified: '2026-03-12T14:30:00Z',
   },
@@ -396,11 +489,15 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
   {
     entityType: 'customer',
     label: 'Customer',
+    pluralLabel: 'Customers',
     description: 'Master record for individual and corporate customers. Referenced by orders, service jobs, and communications.',
     category: 'master',
     domain: 'CRM',
     owningLayer: 'vertical',
     status: 'active',
+    lookupEligible: true,
+    lookupSearchFields: ['full_name', 'mobile', 'customer_code'],
+    lookupDisplayTemplate: '{{full_name}} — {{customer_code}}',
     behaviors: defaultEntityBehaviors({ allowDownstreamExtension: true, allowDownstreamRequirednessRelaxation: true }),
     fields: [
       {
@@ -528,12 +625,14 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
   {
     entityType: 'currency',
     label: 'Currency',
+    pluralLabel: 'Currencies',
     description: 'Configuration entity defining supported currencies, conversion rates, and display settings.',
     category: 'configuration',
     domain: 'Finance',
     owningLayer: 'platform',
     status: 'active',
-    behaviors: defaultEntityBehaviors({ workflowEnabled: false, auditable: true, allowBulkImport: true }),
+    lookupEligible: false,
+    behaviors: defaultEntityBehaviors({ workflowEnabled: false, auditable: true }),
     fields: [
       {
         fieldId: 'currency_code',
@@ -600,12 +699,14 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
   {
     entityType: 'service_job',
     label: 'Service Job',
+    pluralLabel: 'Service Jobs',
     description: 'Tracks vehicle service and repair jobs from job card creation through invoicing.',
     category: 'transaction',
     domain: 'Service',
     owningLayer: 'vertical',
     status: 'active',
-    behaviors: defaultEntityBehaviors({ allowAttachments: true }),
+    lookupEligible: false,
+    behaviors: defaultEntityBehaviors(),
     fields: [
       {
         fieldId: 'record_id',
@@ -721,6 +822,44 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
         order: 6,
       },
     ],
+    views: [
+      {
+        viewId: 'job_list',
+        label: 'All Service Jobs',
+        viewType: 'list_view' as const,
+        isDefault: true,
+        owningLayer: 'platform' as const,
+        filterConditions: { logic: 'AND' as const, conditions: [] },
+        fieldConfig: [
+          { fieldId: 'job_card_number',   visible: true,  summaryType: 'count' as const,  textAlign: 'left' as const, freezePosition: 'left' as const },
+          { fieldId: 'appointment_time', visible: true,  summaryType: 'none' as const,   textAlign: 'left' as const },
+          { fieldId: 'vehicle_reg',      visible: true,  summaryType: 'none' as const,   textAlign: 'left' as const },
+          { fieldId: 'service_advisor',  visible: true,  summaryType: 'none' as const,   textAlign: 'left' as const },
+          { fieldId: 'odometer',         visible: true,  summaryType: 'none' as const,   textAlign: 'right' as const },
+        ],
+      },
+      {
+        viewId: 'job_card_form',
+        label: 'Job Card Form',
+        viewType: 'form_view' as const,
+        isDefault: true,
+        owningLayer: 'platform' as const,
+        sections: [
+          { sectionId: 'header',   label: 'Job Details',    columns: 2 as const, collapsible: false, defaultCollapsed: false },
+          { sectionId: 'vehicle',  label: 'Vehicle',        columns: 2 as const, collapsible: false, defaultCollapsed: false },
+          { sectionId: 'customer', label: 'Customer',       columns: 2 as const, collapsible: true,  defaultCollapsed: false },
+          { sectionId: 'labour',   label: 'Labour Items',   columns: 1 as const, collapsible: true,  defaultCollapsed: false },
+        ],
+        fieldConfig: [
+          { fieldId: 'job_card_number',  visible: true, sectionId: 'header',  readonly: true },
+          { fieldId: 'appointment_time', visible: true, sectionId: 'header' },
+          { fieldId: 'vehicle_reg',      visible: true, sectionId: 'vehicle' },
+          { fieldId: 'odometer',         visible: true, sectionId: 'vehicle' },
+          { fieldId: 'service_advisor',  visible: true, sectionId: 'customer' },
+          { fieldId: 'labour_items',     visible: true, sectionId: 'labour' },
+        ],
+      },
+    ],
     createdAt: '2025-01-15T10:00:00Z',
     lastModified: '2026-01-10T11:00:00Z',
   },
@@ -729,11 +868,15 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
   {
     entityType: 'dealer',
     label: 'Dealer',
+    pluralLabel: 'Dealers',
     description: 'Master data entity for authorized dealers in the automotive network.',
     category: 'master',
     domain: 'Network',
     owningLayer: 'vertical',
     status: 'active',
+    lookupEligible: true,
+    lookupSearchFields: ['dealer_name', 'dealer_code'],
+    lookupDisplayTemplate: '{{dealer_name}} ({{dealer_code}})',
     behaviors: defaultEntityBehaviors({ allowDownstreamExtension: true }),
     fields: [
       {
@@ -816,11 +959,15 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
   {
     entityType: 'vehicle_model',
     label: 'Vehicle Model',
+    pluralLabel: 'Vehicle Models',
     description: 'OEM-defined vehicle models available for ordering. Read-only at tenant/node layers.',
     category: 'master',
     domain: 'Product',
     owningLayer: 'platform',
     status: 'active',
+    lookupEligible: true,
+    lookupSearchFields: ['model_name', 'model_code'],
+    lookupDisplayTemplate: '{{model_name}} ({{model_code}})',
     behaviors: defaultEntityBehaviors({ workflowEnabled: false, allowDownstreamExtension: false, auditable: false }),
     fields: [
       {
@@ -902,12 +1049,14 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
   {
     entityType: 'tax_code',
     label: 'Tax Code',
+    pluralLabel: 'Tax Codes',
     description: 'Configuration entity for tax rates applied to vehicle transactions.',
     category: 'configuration',
     domain: 'Finance',
     owningLayer: 'tenant',
     status: 'active',
-    behaviors: defaultEntityBehaviors({ workflowEnabled: false, auditable: true, allowBulkImport: true }),
+    lookupEligible: false,
+    behaviors: defaultEntityBehaviors({ workflowEnabled: false, auditable: true }),
     fields: [
       {
         fieldId: 'tax_code',
@@ -974,12 +1123,16 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
   {
     entityType: 'parts_inventory',
     label: 'Parts Inventory',
+    pluralLabel: 'Parts',
     description: 'Tracks spare parts stock levels, reorder points, and part metadata for service operations.',
     category: 'master',
     domain: 'Parts',
     owningLayer: 'vertical',
     status: 'active',
-    behaviors: defaultEntityBehaviors({ allowBulkImport: true, allowAttachments: false }),
+    lookupEligible: true,
+    lookupSearchFields: ['part_name', 'part_number'],
+    lookupDisplayTemplate: '{{part_name}} ({{part_number}})',
+    behaviors: defaultEntityBehaviors(),
     fields: [
       {
         fieldId: 'part_number',
@@ -1066,7 +1219,10 @@ export const MOCK_ENTITIES: EntityDefinition[] = [
     domain: 'Geography',
     owningLayer: 'platform',
     status: 'active',
-    behaviors: defaultEntityBehaviors({ workflowEnabled: false, auditable: true, softDelete: false, allowAttachments: false, allowBulkImport: true, allowDownstreamExtension: true, allowDownstreamRequirednessRelaxation: false }),
+    lookupEligible: true,
+    lookupSearchFields: ['area_name', 'city', 'pincode'],
+    lookupDisplayTemplate: '{{area_name}}, {{city}}',
+    behaviors: defaultEntityBehaviors({ workflowEnabled: false, auditable: true, softDelete: false }),
     fields: [
       {
         fieldId: 'area_id',
@@ -1468,4 +1624,26 @@ export const MOCK_MASTER_CODE_SETTINGS: MasterCodeSetting[] = [
     manualOverrideAllowed: true,
     previewExample: 'SUPP-0045',
   },
+];
+
+// ─────────────────────────────────────────────
+// WORKFLOW CODES (for ActionsPanel handler picker)
+// ─────────────────────────────────────────────
+export const MOCK_WORKFLOW_CODES: { code: string; label: string; description: string }[] = [
+  { code: 'wf_vehicle_order',    label: 'Vehicle Order Workflow',    description: 'Draft → Booked → In Transit → Delivered → Invoiced' },
+  { code: 'wf_service_job',      label: 'Service Job Workflow',      description: 'Open → In Progress → Pending Customer → Completed → Closed' },
+  { code: 'wf_approval_simple',  label: 'Simple Approval Workflow',  description: 'Draft → Submitted → Approved / Rejected' },
+  { code: 'wf_approval_multi',   label: 'Multi-Level Approval',      description: 'Draft → L1 Approval → L2 Approval → Approved / Rejected' },
+  { code: 'wf_master_activate',  label: 'Master Data Activation',    description: 'Draft → Active / Inactive lifecycle for master records' },
+];
+
+// ─────────────────────────────────────────────
+// INTEGRATION ENDPOINT CODES (for ActionsPanel API call handler picker)
+// ─────────────────────────────────────────────
+export const MOCK_ENDPOINT_CODES: { code: string; label: string; description: string }[] = [
+  { code: 'ep_oem_push',        label: 'OEM Data Push',             description: 'Pushes vehicle order data to the OEM portal' },
+  { code: 'ep_gstin_lookup',    label: 'GSTIN Verification API',    description: 'Validates GSTIN against the GST portal' },
+  { code: 'ep_crm_sync',        label: 'CRM Record Sync',           description: 'Synchronises customer record with the external CRM system' },
+  { code: 'ep_sms_notification',label: 'SMS Notification',          description: 'Sends an SMS to the customer via the messaging gateway' },
+  { code: 'ep_email_trigger',   label: 'Email Trigger',             description: 'Triggers a transactional email from the notification service' },
 ];

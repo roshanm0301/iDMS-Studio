@@ -46,49 +46,25 @@ export function detectAllConflicts(entity: EntityDefinition): {
         fieldId: field.fieldId, fieldLabel: field.label,
       });
     }
-    // Deprecated field with live dependencies — usage risk
-    if (field.lifecycle === 'deprecated' && (field.dependencies?.length ?? 0) > 0) {
+    // Disabled field with live dependencies — usage risk
+    if (field.lifecycle === 'disabled' && (field.dependencies?.length ?? 0) > 0) {
       compileErrors.push({
         severity: 'warning',
-        message: `Deprecated field "${field.label}" still has ${field.dependencies!.length} active dependency(-ies)`,
+        message: `Disabled field "${field.label}" still has ${field.dependencies!.length} active dependency(-ies)`,
         fieldId: field.fieldId, fieldLabel: field.label,
       });
     }
 
     // ── Governance conflicts (policy / compliance violations) ─
-    // PII or Regulated exported without masking
+    // Sensitive or Regulated exported without masking
     if (
-      (field.classification === 'pii' || field.classification === 'regulated') &&
+      (field.classification === 'sensitive' || field.classification === 'regulated') &&
       field.governance.includeInExport &&
       !field.governance.maskInExport
     ) {
       governanceConflicts.push({
         severity: 'warning',
-        message: `PII/Regulated field "${field.label}" is exported without masking`,
-        fieldId: field.fieldId, fieldLabel: field.label,
-      });
-    }
-    // Financial data exported without masking
-    if (
-      field.classification === 'financial' &&
-      field.governance.includeInExport &&
-      !field.governance.maskInExport
-    ) {
-      governanceConflicts.push({
-        severity: 'warning',
-        message: `Financial field "${field.label}" is exported without masking — audit trail required`,
-        fieldId: field.fieldId, fieldLabel: field.label,
-      });
-    }
-    // Audit-sensitive exported without masking
-    if (
-      field.classification === 'audit_sensitive' &&
-      field.governance.includeInExport &&
-      !field.governance.maskInExport
-    ) {
-      governanceConflicts.push({
-        severity: 'warning',
-        message: `Audit-sensitive field "${field.label}" is exported without masking`,
+        message: `${field.classification === 'regulated' ? 'Regulated' : 'Sensitive'} field "${field.label}" is exported without masking`,
         fieldId: field.fieldId, fieldLabel: field.label,
       });
     }

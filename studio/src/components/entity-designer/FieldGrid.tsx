@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import type { EntityDefinition, FieldInstance, FieldLifecycleState, FieldTypeCode } from '../../types/entityDesigner';
 import type { LayerCode } from '../../types';
-import { LAYER_COLORS_CHIP, LIFECYCLE_CONFIG } from '../../utils/entityDesignerConstants';
+import { LAYER_COLORS, LAYER_COLORS_CHIP, LIFECYCLE_CONFIG } from '../../utils/entityDesignerConstants';
 
 interface Props {
   entity: EntityDefinition;
@@ -20,6 +20,9 @@ interface Props {
   // Phase 3 — Overlay composition
   inheritedFields?: FieldInstance[];
   onConstrainField?: (field: FieldInstance) => void;
+  // P1-01 / P1-02 — layer highlight + view mode
+  editingLayer?: LayerCode | null;
+  viewMode?: 'delta' | 'resolved';
 }
 
 const PRESENCE_SHORT: Record<string, string> = {
@@ -51,7 +54,7 @@ type FilterState = {
 const EMPTY_FILTER: FilterState = { layers: [], lifecycle: [], protectedOnly: false };
 
 // ── Column picker ─────────────────────────────────────────────
-type ColumnKey = 'label' | 'fieldId' | 'type' | 'layer' | 'required' | 'editable' | 'visible' | 'protected' | 'lifecycle' | 'usedBy' | 'actions';
+type ColumnKey = 'label' | 'fieldId' | 'type' | 'layer' | 'required' | 'editable' | 'visible' | 'protected' | 'lifecycle' | 'usedBy' | 'views' | 'actions';
 const DEFAULT_COLUMNS: ColumnKey[] = ['label', 'type', 'layer', 'required', 'visible', 'lifecycle', 'actions'];
 const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
   { key: 'label',     label: 'Label'     },
@@ -64,12 +67,14 @@ const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
   { key: 'protected', label: 'Protected' },
   { key: 'lifecycle', label: 'Status'    },
   { key: 'usedBy',    label: 'Used By'   },
+  { key: 'views',     label: 'Views'     },
   { key: 'actions',   label: 'Actions'   },
 ];
 
 // ── Field row ─────────────────────────────────────────────────
 function FieldRow({
-  field, columns, isSelected, onSelect, onEdit, onDelete,
+  field, columns, isSelected, onSelect, onEdit, onDelete, editingLayer = null,
+  displayNameFieldId, viewVisibleCount, viewTotalCount,
 }: {
   field: FieldInstance;
   columns: ColumnKey[];
@@ -77,21 +82,33 @@ function FieldRow({
   onSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  editingLayer?: LayerCode | null;
+  displayNameFieldId?: string;
+  viewVisibleCount?: number;
+  viewTotalCount?: number;
 }) {
   const lc = LIFECYCLE_CONFIG[field.lifecycle];
   const LcIcon = lc.icon;
   const layerColor = LAYER_COLORS_CHIP[field.sourceLayer] ?? LAYER_COLORS_CHIP.platform;
 
+  const isHighlighted = editingLayer != null && field.sourceLayer === editingLayer;
+  const isDimmed      = editingLayer != null && field.sourceLayer !== editingLayer;
+  const layerHex      = LAYER_COLORS[field.sourceLayer] ?? '#6b7280';
+
   return (
     <tr
       style={{
         background: isSelected
-          ? 'var(--primary-light, rgba(99,102,241,0.06))'
-          : field.protected ? 'rgba(124,58,237,0.025)' : 'transparent',
+          ? 'hsl(22 100% 51% / 0.08)'
+          : isHighlighted
+            ? `${layerHex}0d`   // ~5% tint — subtle, not competing with lifecycle badges
+            : field.protected ? 'rgba(124,58,237,0.02)' : 'transparent',
+        boxShadow: isHighlighted ? `inset 3px 0 0 ${layerHex}` : 'none',
         cursor: 'pointer',
         borderBottom: '1px solid var(--border)',
-        opacity: field.lifecycle === 'disabled' ? 0.55 : 1,
-        transition: 'opacity 0.15s',
+        // disabled lifecycle → 0.55; dimmed (other layer, but still readable) → 0.78; normal → 1
+        opacity: field.lifecycle === 'disabled' ? 0.55 : isDimmed ? 0.78 : 1,
+        transition: 'opacity 0.15s, background 0.15s',
       }}
       onClick={onSelect}
     >
@@ -99,9 +116,21 @@ function FieldRow({
         <td key={col} style={{ padding: '8px 10px', fontSize: '13px', verticalAlign: 'middle' }}>
           {col === 'label' && (
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                 {field.protected && <Lock size={11} style={{ color: 'var(--muted)', flexShrink: 0 }} />}
                 <span style={{ fontWeight: isSelected ? 600 : 400 }}>{field.label}</span>
+                {displayNameFieldId === field.fieldId && (
+                  <span
+                    title="Record Display Name — used in dropdowns, search results, and notifications"
+                    style={{
+                      fontSize: '10px', padding: '1px 6px', borderRadius: '4px',
+                      background: 'hsl(22 100% 51% / 0.12)', color: 'var(--accent)',
+                      fontWeight: 600, flexShrink: 0,
+                    }}
+                  >
+                    Display Name
+                  </span>
+                )}
               </div>
               {field.description && (
                 <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
@@ -156,6 +185,20 @@ function FieldRow({
               {field.dependencies?.length ?? 0} deps
             </span>
           )}
+          {col === 'views' && (
+            viewTotalCount !== undefined && viewTotalCount > 0 ? (
+              <span style={{
+                fontSize: '11px', padding: '1px 6px', borderRadius: '9px',
+                background: (viewVisibleCount ?? 0) > 0 ? 'hsl(22 100% 51% / 0.08)' : 'var(--bg-secondary)',
+                color: (viewVisibleCount ?? 0) > 0 ? 'var(--accent)' : 'var(--muted)',
+                border: `1px solid ${(viewVisibleCount ?? 0) > 0 ? 'hsl(22 100% 51% / 0.2)' : 'var(--border)'}`,
+              }}>
+                {viewVisibleCount ?? 0} / {viewTotalCount}
+              </span>
+            ) : (
+              <span style={{ fontSize: '11px', color: 'var(--muted)' }}>—</span>
+            )
+          )}
           {col === 'actions' && (
             <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
               <button className="btn btn-ghost" style={{ padding: '5px 8px' }} onClick={onEdit} title="Edit field">
@@ -197,6 +240,7 @@ function FilterChip({ label, color, onRemove }: { label: string; color: string; 
 export default function FieldGrid({
   entity, selectedFieldId, onSelectField, onAddField, onEditField,
   onDeleteField, inheritedFields = [], onConstrainField,
+  editingLayer = null, viewMode = 'delta',
 }: Props) {
   const [columns, setColumns]                   = useState<ColumnKey[]>(DEFAULT_COLUMNS);
   const [showColumnPicker, setShowColumnPicker] = useState(false);
@@ -250,6 +294,21 @@ export default function FieldGrid({
     return [...fields].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [entity.fields, search, filters]);
 
+  // Compute per-field view participation counts for the 'views' column
+  const viewCountMap = useMemo(() => {
+    const views = entity.views ?? [];
+    const total = views.length;
+    const counts: Record<string, number> = {};
+    for (const field of entity.fields) {
+      const visibleIn = views.filter(v =>
+        v.fieldConfig.find(fc => fc.fieldId === field.fieldId)?.visible !== false &&
+        v.fieldConfig.some(fc => fc.fieldId === field.fieldId)
+      ).length;
+      counts[field.fieldId] = visibleIn;
+    }
+    return { counts, total };
+  }, [entity.fields, entity.views]);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
@@ -294,7 +353,7 @@ export default function FieldGrid({
             Filter
             {activeFilterCount > 0 && (
               <span style={{
-                background: 'var(--primary)', color: '#fff',
+                background: 'var(--accent)', color: '#fff',
                 borderRadius: '10px', fontSize: '10px', fontWeight: 700,
                 padding: '1px 5px', lineHeight: 1.4,
               }}>
@@ -455,6 +514,33 @@ export default function FieldGrid({
         </span>
       </div>
 
+      {/* ── ViewMode / EditingLayer status bar ───────────────── */}
+      {(viewMode === 'resolved' || editingLayer != null) && (
+        <div style={{
+          padding: '4px 12px', borderBottom: '1px solid var(--border)',
+          background: 'var(--bg-secondary)', fontSize: '11px', color: 'var(--muted)',
+          display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0,
+        }}>
+          {viewMode === 'resolved' ? (
+            <span style={{ color: '#10b981', fontWeight: 600 }}>
+              ✓ Resolved view — showing all layers merged
+            </span>
+          ) : (
+            <span>Showing current delta</span>
+          )}
+          {editingLayer != null && (
+            <span style={{
+              padding: '1px 8px', borderRadius: '10px', fontWeight: 600,
+              background: `${LAYER_COLORS[editingLayer] ?? '#6b7280'}18`,
+              color: LAYER_COLORS[editingLayer] ?? '#6b7280',
+              border: `1px solid ${LAYER_COLORS[editingLayer] ?? '#6b7280'}40`,
+            }}>
+              Editing as: {editingLayer}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* ── Field table ──────────────────────────────────────── */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto' }}>
 
@@ -462,10 +548,10 @@ export default function FieldGrid({
         {inheritedFields.length > 0 && (
           <div style={{ marginBottom: '0' }}>
             <div style={{
-              padding: '6px 10px', background: 'rgba(99,102,241,0.06)',
-              borderBottom: '1px solid rgba(99,102,241,0.15)',
+              padding: '6px 10px', background: 'hsl(22 100% 51% / 0.06)',
+              borderBottom: '1px solid hsl(22 100% 51% / 0.2)',
               display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--primary)',
+              textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--accent)',
               position: 'sticky', top: 0, zIndex: 12,
             }}>
               <Lock size={11} />
@@ -479,7 +565,7 @@ export default function FieldGrid({
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
-                <tr style={{ background: 'rgba(99,102,241,0.04)', position: 'sticky', top: '28px', zIndex: 11 }}>
+                <tr style={{ background: 'var(--bg-secondary)', position: 'sticky', top: '28px', zIndex: 11 }}>
                   {columns.map(col => (
                     <th key={col} style={{
                       textAlign: 'left', padding: '7px 10px', fontWeight: 600,
@@ -503,12 +589,12 @@ export default function FieldGrid({
                       title="Click to add a constraint overlay on this inherited field"
                       style={{
                         cursor: 'pointer', opacity: 0.75,
-                        background: 'rgba(99,102,241,0.02)',
+                        background: 'var(--bg-secondary)',
                         borderBottom: '1px solid var(--border)',
                         transition: 'background 0.1s',
                       }}
-                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(99,102,241,0.06)')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'rgba(99,102,241,0.02)')}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'hsl(22 100% 51% / 0.05)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'var(--bg-secondary)')}
                     >
                       {columns.map(col => (
                         <td key={col} style={{ padding: '8px 10px', whiteSpace: 'nowrap' }}>
@@ -516,7 +602,7 @@ export default function FieldGrid({
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               {field.protected && <Lock size={11} style={{ color: 'var(--muted)' }} />}
                               <span style={{ fontWeight: 500 }}>{field.label}</span>
-                              <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '8px', background: 'rgba(99,102,241,0.12)', color: 'var(--primary)', fontWeight: 600 }}>inherited</span>
+                              <span style={{ fontSize: '10px', padding: '1px 5px', borderRadius: '8px', background: 'hsl(22 100% 51% / 0.12)', color: 'var(--accent)', fontWeight: 600 }}>inherited</span>
                             </div>
                           )}
                           {col === 'fieldId' && <code style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--muted)' }}>{field.fieldId}</code>}
@@ -535,7 +621,7 @@ export default function FieldGrid({
                           {col === 'actions' && (
                             <button
                               className="btn btn-ghost"
-                              style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--primary)' }}
+                              style={{ fontSize: '11px', padding: '2px 8px', color: 'var(--accent)' }}
                               onClick={e => { e.stopPropagation(); onConstrainField?.(field); }}
                               title="Add constraint overlay on this inherited field"
                             >
@@ -588,6 +674,10 @@ export default function FieldGrid({
                 onSelect={() => onSelectField(field.fieldId === selectedFieldId ? null : field.fieldId)}
                 onEdit={() => onEditField(field)}
                 onDelete={() => onDeleteField(field.fieldId)}
+                editingLayer={editingLayer}
+                displayNameFieldId={entity.displayNameFieldId}
+                viewVisibleCount={viewCountMap.counts[field.fieldId] ?? 0}
+                viewTotalCount={viewCountMap.total}
               />
             ))}
 
