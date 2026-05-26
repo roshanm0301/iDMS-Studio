@@ -13,6 +13,20 @@ const EntityListPage = lazy(() => import('./pages/EntityListPage'));
 const CreateEntityPage = lazy(() => import('./pages/CreateEntityPage'));
 const SchemaBuilderPage = lazy(() => import('./pages/SchemaBuilderPage'));
 
+// UI Studio pages (lazy-loaded)
+const UIStudioListPage = lazy(() =>
+  import('./pages/ui-studio/UIStudioListPage').then(m => ({ default: m.UIStudioListPage }))
+);
+const UIStudioNewViewPage = lazy(() =>
+  import('./pages/ui-studio/UIStudioNewViewPage').then(m => ({ default: m.UIStudioNewViewPage }))
+);
+const UIStudioEditorPage = lazy(() =>
+  import('./pages/ui-studio/UIStudioEditorPage').then(m => ({ default: m.UIStudioEditorPage }))
+);
+const UIStudioRuntimePreviewPage = lazy(() =>
+  import('./pages/ui-studio/UIStudioRuntimePreviewPage').then(m => ({ default: m.UIStudioRuntimePreviewPage }))
+);
+
 const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } } });
 
 const PageLoader = () => (
@@ -48,6 +62,22 @@ function App() {
                 <p className="empty-title">Settings</p>
                 <p className="empty-desc">Platform settings coming soon.</p>
               </div>
+            } />
+          </Route>
+
+          {/* UI Studio — separate module at /admin/ui-studio */}
+          <Route path="/admin/ui-studio" element={<AppShell />}>
+            <Route index element={
+              <Suspense fallback={<PageLoader />}><UIStudioListPage /></Suspense>
+            } />
+            <Route path="new" element={
+              <Suspense fallback={<PageLoader />}><UIStudioNewViewPage /></Suspense>
+            } />
+            <Route path="editor/:viewId" element={
+              <Suspense fallback={<PageLoader />}><UIStudioEditorPage /></Suspense>
+            } />
+            <Route path="preview/:viewId" element={
+              <Suspense fallback={<PageLoader />}><UIStudioRuntimePreviewPage /></Suspense>
             } />
           </Route>
         </Routes>

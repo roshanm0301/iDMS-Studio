@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.ui-studio.tsbuildinfo"
+  },
+  "include": [
+    "src/types/ui-studio/**/*",
+    "src/mocks/ui-studio/**/*",
+    "src/hooks/ui-studio/**/*",
+    "src/lib/ui-studio/**/*",
+    "src/components/ui-studio/**/*",
+    "src/pages/ui-studio/**/*",
+    "src/__tests__/ui-studio/**/*"
+  ]
+}

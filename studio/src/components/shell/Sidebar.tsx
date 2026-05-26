@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Box, Package, Settings, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, GitBranch, Shield, BookOpen, Database
+  PanelLeftClose, PanelLeftOpen, BookOpen, Database, Layers
 } from 'lucide-react';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import { getArtifacts } from '../../data/mockService';
@@ -12,6 +12,7 @@ const NAV = [
   { id: '/admin/studio/entities', icon: Database, label: 'Entity Designer', shortcut: 'G E' },
   { id: '/admin/studio/releases', icon: Package, label: 'Release Packages', shortcut: 'G R', badgeKey: 'releases' },
   { id: '/admin/studio/attributes', icon: BookOpen, label: 'Attribute Catalog', shortcut: 'G C' },
+  { id: '/admin/ui-studio', icon: Layers, label: 'UI Studio', shortcut: 'G U' },
 ];
 
 const SYS_NAV = [
