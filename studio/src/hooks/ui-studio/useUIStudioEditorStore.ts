@@ -9,6 +9,7 @@ interface UIStudioEditorState {
 
   setActiveView: (viewId: string | null) => void
   setArtifact: (artifact: ViewArtifact | null) => void
+  updateArtifact: (patch: Partial<ViewArtifact>) => void
   markDirty: () => void
   clearDirty: () => void
   setSelectedComponent: (componentId: string | null) => void
@@ -22,12 +23,18 @@ const initialState = {
   selectedComponentId: null,
 }
 
-export const useUIStudioEditorStore = create<UIStudioEditorState>((set) => ({
+export const useUIStudioEditorStore = create<UIStudioEditorState>((set, get) => ({
   ...initialState,
 
   setActiveView: (viewId) => set({ activeViewId: viewId }),
 
   setArtifact: (artifact) => set({ artifact }),
+
+  updateArtifact: (patch) => {
+    const current = get().artifact
+    if (!current) return
+    set({ artifact: { ...current, ...patch }, isDirty: true })
+  },
 
   markDirty: () => set({ isDirty: true }),
 

@@ -115,6 +115,9 @@ export interface ViewArtifact extends ViewSummary {
   actions: ActionDefinition[]
   behaviorRules: BehaviorRuleDefinition[]
   validationState?: ViewValidationSummary
+  contextContract?: ViewContextContract
+  transactionConfig?: TransactionConfig
+  scaffoldApplied?: boolean
 }
 
 export interface CreateViewInput {
@@ -190,6 +193,35 @@ export interface MockEntityDefinition {
     supportsWorkflow: boolean
     supportsAudit: boolean
   }
+}
+
+export interface ViewContextContract {
+  routeKey?: string
+  recordIdSource?: string
+  parentEntityId?: string
+  parentRecordIdSource?: string
+  relationshipName?: string
+  lineEntityId?: string
+  lineRelationshipId?: string
+  dateRangeContext?: boolean
+}
+
+export interface TransactionLineColumn {
+  fieldId: string
+  label?: string
+  editable: boolean
+  required?: boolean
+  width?: number
+}
+
+export interface TransactionConfig {
+  headerEntityId: string
+  lineEntityId: string
+  lineRelationshipId: string
+  headerFieldIds: string[]
+  lineColumns: TransactionLineColumn[]
+  totalsEnabled: boolean
+  totalFieldIds: string[]
 }
 
 // Repository interface — backend-agnostic contract
