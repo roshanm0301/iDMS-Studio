@@ -25,3 +25,19 @@ Field Change Event Configuration
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-13 — Field Change Events: FCE-001 through FCE-020 (total 20 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can configure on-change event handlers on form fields
+- Supported event actions: set-field-value, clear-field, recalculate, trigger-lookup-refresh, show-message
+- Event handlers are declarative (no custom scripts)
+- Event execution order is deterministic
+
+## Edge Cases (from spec)
+
+- Event target field removed from layout (blocked on publish)
+- Infinite loop in field change chain (blocked/capped)

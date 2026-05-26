@@ -21,3 +21,19 @@ Preview with Context Simulation
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-18 — Preview with Context Simulation: PRE-001 through PRE-022 (total 22 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can preview a draft as Sales Executive, Finance Manager, or Service Manager before publish
+- Admin can see which fields/actions disappear due to permissions or workflow state
+- Preview cannot accidentally create/update/delete production records
+
+## Edge Cases (from spec)
+
+- No sample record exists
+- Permission service unavailable
+- Workflow state simulation conflicts with record status

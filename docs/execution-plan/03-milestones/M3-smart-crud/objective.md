@@ -20,3 +20,19 @@ Smart CRUD Builder
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-03 — Smart CRUD Builder: CRUD-001 through CRUD-020 (total 20 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can auto-generate a base CRUD view for any entity with one click
+- Generated view includes list surface and create/edit form surface with sensible defaults
+- Admin can modify the generated scaffold
+- List and form views are linked
+
+## Edge Cases (from spec)
+
+- Entity with no published fields
+- Entity with 100+ fields (smart selection of top N)

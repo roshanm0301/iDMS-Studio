@@ -23,3 +23,19 @@ Typed View Surface Designer
 
 ## Hard Constraints
 - Frontend only. Mock data only. No backend APIs. Named exports only.
+
+## Requirement IDs
+
+P0-02 — Typed View Surface Designer: SUR-001 through SUR-020 (total 20 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can select surface type during view creation and in the editor
+- Surface type is immutable after publish
+- Each surface type has its own context contract fields validated during publish
+- Surface type controls which layout options are available
+
+## Edge Cases (from spec)
+
+- Admin tries to change surface type after publish (blocked)
+- Surface type conflicts with selected entity (warn)

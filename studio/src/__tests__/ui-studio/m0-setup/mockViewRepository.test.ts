@@ -40,18 +40,20 @@ describe('mockViewRepository', () => {
   describe('createDraft', () => {
     it('creates a new view and returns it as draft', async () => {
       const draft = await mockViewRepository.createDraft({
+        viewKey: 'test_view',
         label: 'Test View',
         surfaceType: 'list',
         primaryEntityId: 'entity-customer',
       })
       expect(draft.status).toBe('draft')
       expect(draft.label).toBe('Test View')
+      expect(draft.viewKey).toBe('test_view')
       expect(draft.version).toBe(1)
       expect(draft.id).toBeTruthy()
     })
 
     it('adds the new view to the list', async () => {
-      await mockViewRepository.createDraft({ label: 'Extra View', surfaceType: 'dashboard_summary' })
+      await mockViewRepository.createDraft({ viewKey: 'extra_view', label: 'Extra View', surfaceType: 'dashboard_summary' })
       const views = await mockViewRepository.listViews()
       expect(views).toHaveLength(6)
       expect(views.some(v => v.label === 'Extra View')).toBe(true)

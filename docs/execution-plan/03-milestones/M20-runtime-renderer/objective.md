@@ -35,3 +35,21 @@ Runtime Renderer Contract
 ## Hard Constraints
 - Renderer does NOT import from builder components or editor store
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-20 — Runtime Renderer Contract: RTC-001 through RTC-025 (total 25 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Published views render consistently for end users
+- Runtime respects permissions and does not leak data
+- Errors are diagnosable and controlled
+- Future components can target a stable renderer contract
+
+## Edge Cases (from spec)
+
+- Active view version references deprecated component
+- Authorization service returns partial field access
+- Data source times out
+- New version published while user has old view open

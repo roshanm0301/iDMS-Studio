@@ -20,3 +20,19 @@ Layout Builder
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-06 — Layout Builder: LAY-001 through LAY-020 (total 20 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can create sections, tabs, columns, and groups in the layout
+- Admin can reorder layout containers via drag-or-move
+- Layout changes are reflected in canvas preview
+- Nested containers respect depth limits
+
+## Edge Cases (from spec)
+
+- Empty section/tab (warn on publish)
+- Circular container reference (blocked)

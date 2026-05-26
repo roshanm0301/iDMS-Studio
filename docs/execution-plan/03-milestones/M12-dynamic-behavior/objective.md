@@ -22,3 +22,20 @@ Basic Dynamic Behavior Builder
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-12 — Basic Dynamic Behavior: BEH-001 through BEH-022 (total 22 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can create behavior rules: if condition then effect (show/hide/enable/disable/set-required)
+- Conditions reference field values and context variables
+- Effects target specific fields or sections in the layout
+- Multiple rules are evaluated in declaration order
+
+## Edge Cases (from spec)
+
+- Rule target deleted from layout (blocked on publish)
+- Circular rule dependency (blocked on publish)
+- Rule references context variable not in surface contract (warn)

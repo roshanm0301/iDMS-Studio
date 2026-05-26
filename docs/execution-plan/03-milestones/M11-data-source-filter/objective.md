@@ -25,3 +25,19 @@ Data Source & Filter Override
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-11 — Data Source & Filter Override: DSO-001 through DSO-020 (total 20 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can override the data source for a list or lookup with a custom filter
+- Filter builder supports field comparisons, context variable references, and AND/OR logic
+- Filter is validated against entity field schema on publish
+- Override filter is layered on top of base authorization
+
+## Edge Cases (from spec)
+
+- Filter references a deleted field (blocked on publish)
+- Context variable not available in surface contract (warn)

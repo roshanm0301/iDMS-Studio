@@ -17,3 +17,19 @@ Display-only, Status badge
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-08 — Form Field Configuration: FRM-001 through FRM-025 (total 25 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can configure each field in a form: widget type, label override, placeholder, help text, requiredness, read-only
+- Widget type list is filtered by field data type
+- Required flag override is respected in runtime form validation
+- Help text appears beside field at runtime
+
+## Edge Cases (from spec)
+
+- Widget type incompatible with field type (blocked)
+- Required field hidden by behavior rule (warn)

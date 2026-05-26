@@ -20,3 +20,19 @@ Action Placement Configuration
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-15 — Action Placement: ACT-001 through ACT-021 (total 21 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can place registered actions in header toolbar, form toolbar, row actions, or bulk action zones
+- Action placement is validated against approved action registry
+- Actions can be conditionally hidden by behavior rules
+- Primary vs secondary action styling is configurable
+
+## Edge Cases (from spec)
+
+- Action removed from registry after placed in view (blocked on publish)
+- Conflicting primary action placement (warn)

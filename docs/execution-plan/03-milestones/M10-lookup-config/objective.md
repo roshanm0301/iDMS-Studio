@@ -27,3 +27,19 @@ Lookup / Entity Picker Configuration
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-10 — Lookup/Entity Picker: LOOK-001 through LOOK-020 (total 20 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can configure a lookup field to reference another entity
+- Admin can configure search fields, display fields, and value field for lookup
+- Lookup configuration is validated against entity relationship metadata
+- Runtime lookup shows search results and lets user select a record
+
+## Edge Cases (from spec)
+
+- Referenced entity has no searchable fields
+- Circular lookup chain (warn)

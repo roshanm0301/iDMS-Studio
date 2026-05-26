@@ -18,3 +18,19 @@ List/Grid Configuration
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-07 — List/Grid Configuration: LST-001 through LST-024 (total 24 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can configure which columns appear in list surface
+- Admin can set sort default, column width, and header label
+- Admin can enable/disable row selection, bulk actions, pagination
+- Column count and type compatibility validated on publish
+
+## Edge Cases (from spec)
+
+- Zero columns configured (blocked on publish)
+- Column references deleted field (blocked on publish)

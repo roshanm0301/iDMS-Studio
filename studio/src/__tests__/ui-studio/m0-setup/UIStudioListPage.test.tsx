@@ -1,29 +1,38 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { UIStudioListPage } from '../../../pages/ui-studio/UIStudioListPage'
+import { resetMockViewRepository } from '../../../mocks/ui-studio/mockViewRepository'
 
-function renderWithRouter(ui: React.ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>)
+function wrapper({ children }: { children: React.ReactNode }) {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return (
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>{children}</MemoryRouter>
+    </QueryClientProvider>
+  )
 }
 
-describe('UIStudioListPage — M0 placeholder', () => {
-  it('renders the page title', () => {
-    renderWithRouter(<UIStudioListPage />)
-    expect(screen.getByText('UI Studio')).toBeInTheDocument()
+beforeEach(() => { resetMockViewRepository() })
+
+describe('UIStudioListPage — smoke tests', () => {
+  it('renders the page title', async () => {
+    render(<UIStudioListPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('UI Studio')).toBeInTheDocument())
   })
 
-  it('renders the page subtitle', () => {
-    renderWithRouter(<UIStudioListPage />)
-    expect(screen.getByText(/Design and manage application views/i)).toBeInTheDocument()
+  it('renders the page subtitle', async () => {
+    render(<UIStudioListPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText(/Design and publish application views/i)).toBeInTheDocument())
   })
 
-  it('renders the New View button', () => {
-    renderWithRouter(<UIStudioListPage />)
-    expect(screen.getByText('New View')).toBeInTheDocument()
+  it('renders the New View button', async () => {
+    render(<UIStudioListPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('New View')).toBeInTheDocument())
   })
 
-  it('renders the placeholder empty state', () => {
-    renderWithRouter(<UIStudioListPage />)
-    expect(screen.getByText(/UI Studio — Coming Soon/i)).toBeInTheDocument()
+  it('renders view list after loading', async () => {
+    render(<UIStudioListPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Customer List')).toBeInTheDocument())
   })
 })

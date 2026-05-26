@@ -164,10 +164,13 @@ export const mockViewRepository: UIStudioViewRepository = {
 
   async createDraft(input: CreateViewInput): Promise<ViewArtifact> {
     await delay()
+    const store = getStore()
+    const keyConflict = Array.from(store.values()).some(v => v.viewKey === input.viewKey)
+    if (keyConflict) throw new Error(`View key "${input.viewKey}" is already in use.`)
     const id = `view-${uuid()}`
     const artifact: ViewArtifact = {
       id,
-      viewKey: input.label.toLowerCase().replace(/\s+/g, '_'),
+      viewKey: input.viewKey,
       label: input.label,
       description: input.description,
       surfaceType: input.surfaceType,

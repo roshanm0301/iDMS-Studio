@@ -118,6 +118,7 @@ export interface ViewArtifact extends ViewSummary {
 }
 
 export interface CreateViewInput {
+  viewKey: string
   label: string
   surfaceType: ViewSurfaceType
   primaryEntityId?: string

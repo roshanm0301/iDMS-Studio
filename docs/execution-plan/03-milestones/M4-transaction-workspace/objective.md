@@ -21,3 +21,20 @@ Header-Line Transaction Workspace Builder
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-04 — Header-Line Transaction Workspace: TXN-001 through TXN-025 (total 25 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can build a transaction view with a header entity and a line entity
+- Line entity must have a relationship to the header entity
+- Line grid shows line fields; header section shows header fields
+- Totals section is optional and declarative
+
+## Edge Cases (from spec)
+
+- No valid line entity relationship exists
+- Line entity removed from schema after view saved
+- Recursive totals definition

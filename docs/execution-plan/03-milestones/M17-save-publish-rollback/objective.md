@@ -20,3 +20,20 @@ Save / Publish / Rollback Model
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-17 — Save/Publish/Rollback: PUB-001 through PUB-022 (total 22 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Draft changes do not affect end users until publish
+- Published versions are immutable and recoverable
+- A failed publish cannot break the active view
+- Rollback can restore a known-good view quickly
+
+## Edge Cases (from spec)
+
+- Two admins edit same draft simultaneously
+- Entity schema changes between save and publish
+- Rollback target references deleted component type

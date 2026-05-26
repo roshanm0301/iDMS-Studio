@@ -29,3 +29,22 @@ View Registry & View Management
 ## Hard Constraints
 - Frontend only. Mock data only. No backend APIs. No Entity Designer code modification.
 - Named exports only. No `any` except explicit mock boundary.
+
+## Requirement IDs
+
+P0-01 — View Registry & View Management: REG-001 through REG-020 (total 20 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can list all views in the registry, filter by surface type, entity, and status, and sort by label/status/date
+- Admin can create a draft view with unique key, surface type, entity, and label — without publishing it
+- Draft views are not visible to end users until published
+- Registry shows view status (draft/published/needs_attention) visually
+- Clicking a view opens the editor
+
+## Edge Cases (from spec)
+
+- Registry is empty (show empty state with create CTA)
+- Duplicate view key on create (show inline error)
+- View key with spaces or invalid characters (show format error)
+- Registry with 100+ views (should remain performant via client-side filter/sort)

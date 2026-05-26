@@ -24,3 +24,19 @@ Line Grid Configuration
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-09 — Line Grid Configuration: LINE-001 through LINE-024 (total 24 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can configure line grid columns for a transaction workspace
+- Admin can set editable columns, widget types, and column order
+- Line grid validates that each column references a valid line entity field
+- Adding/removing footer totals is declarative
+
+## Edge Cases (from spec)
+
+- Line entity has no numeric fields for totals
+- Editable column references read-only field (warn)

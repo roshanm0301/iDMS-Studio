@@ -26,3 +26,19 @@ Grid Cell Change Event Configuration
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-14 — Grid Cell Change Events: GCE-001 through GCE-022 (total 22 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can configure on-change event handlers on line grid cells
+- Event actions: set-cell-value, recalculate-totals, clear-cell, trigger-row-validation
+- Event handlers fire per-row (not global form)
+- Event order is deterministic within a row
+
+## Edge Cases (from spec)
+
+- Event target column removed from grid (blocked)
+- Total recalculation loop (blocked/capped)

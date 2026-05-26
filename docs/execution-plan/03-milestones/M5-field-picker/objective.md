@@ -19,3 +19,19 @@ Field Picker from Entity Designer
 
 ## Hard Constraints
 - Frontend only. Mock data only. Named exports only.
+
+## Requirement IDs
+
+P0-05 — Field Picker: FPK-001 through FPK-020 (total 20 requirements)
+
+## Acceptance Criteria (from spec)
+
+- Admin can browse and search entity fields in a picker panel
+- Picker shows field name, type, label, required status
+- Selecting a field adds it to the active layout section
+- Picker filters out fields already placed in the current surface
+
+## Edge Cases (from spec)
+
+- Entity has no fields
+- Field removed from entity schema after being added to view (show warning)

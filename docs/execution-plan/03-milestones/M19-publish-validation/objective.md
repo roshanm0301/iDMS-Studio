@@ -33,3 +33,20 @@ Publish Validation
 
 ## Hard Constraints
 - Frontend only. Named exports only. ValidationEngine must be a pure function.
+
+## Requirement IDs
+
+P0-19 — Publish Validation: VAL-001 through VAL-028 (total 28 requirements)
+
+## Acceptance Criteria (from spec)
+
+- No broken view can be published due to missing core metadata
+- Admins see exactly what must be fixed before publish
+- Validation can be run before publish to reduce wasted attempts
+
+## Edge Cases (from spec)
+
+- Field exists in draft but removed before publish
+- Component registry deprecates a component type
+- Behavior rule targets component deleted from layout
+- Workflow command renamed or removed
