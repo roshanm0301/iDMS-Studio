@@ -540,7 +540,9 @@ function CustomActionRow({
           </button>
         </>
       ) : (
-        <Lock size={11} style={{ color: 'var(--muted)', flexShrink: 0 }} title={`Owned by ${LAYER_LABELS[action.owningLayer]}`} />
+        <span title={`Owned by ${LAYER_LABELS[action.owningLayer]}`} style={{ display: 'inline-flex' }}>
+          <Lock size={11} style={{ color: 'var(--muted)', flexShrink: 0 }} />
+        </span>
       )}
     </div>
   );

@@ -15,7 +15,7 @@ const TRIGGER_OPTIONS: RuleTrigger[] = [
   'BEFORE_APPROVE', 'BEFORE_CANCEL', 'BEFORE_DELETE',
   'AFTER_CREATE', 'AFTER_SUBMIT', 'AFTER_APPROVE', 'ON_FIELD_CHANGE',
 ];
-const LAYER_OPTIONS: LayerCode[] = ['platform', 'vertical', 'tenant', 'node', 'role'];
+const LAYER_OPTIONS: LayerCode[] = ['platform', 'vertical', 'tenant', 'node'];
 
 // ─── Helpers ──────────────────────────────────────────────────
 function actionTagClass(action: string): string {
@@ -321,7 +321,7 @@ export default function RulesList({ artifactKey, onOpenRule, compact = false, se
           <thead>
             <tr>
               <th>Rule Name</th>
-              <th>Entity Type</th>
+              <th>API Name</th>
               <th>Trigger</th>
               <th>Action</th>
               <th>Layer</th>

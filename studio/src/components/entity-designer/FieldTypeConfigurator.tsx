@@ -920,6 +920,117 @@ function RatingConfig({ cfg, update }: { cfg: Record<string, any>; update: (k: s
   </>;
 }
 
+// ─── Snapshot Config (exported — wired directly from AddFieldDrawer) ──
+
+interface SnapshotConfigProps {
+  policy: import('../../types/entityDesigner').FieldSnapshotPolicy | undefined;
+  onChange: (p: import('../../types/entityDesigner').FieldSnapshotPolicy) => void;
+  currentEntityType?: string;
+}
+
+export function SnapshotConfig({ policy, onChange, currentEntityType }: SnapshotConfigProps) {
+  const { savedEntities } = useEntityDesignerStore();
+  const allEntities = useMemo(() => getEntityDefinitions(savedEntities), [savedEntities]);
+
+  // All entities are valid snapshot sources (pick from any master / transaction)
+  const sourceEnt = allEntities.find(e => e.entityType === (policy?.sourceEntityType ?? ''));
+  const sourceFields = useMemo(() => {
+    if (!sourceEnt) return [];
+    return sourceEnt.fields.filter(f =>
+      !['collection', 'rollup', 'computed'].includes(f.fieldType) &&
+      f.fieldId !== 'record_id' && f.fieldId !== 'tenant_id'
+    );
+  }, [sourceEnt]);
+
+  const update = <K extends keyof import('../../types/entityDesigner').FieldSnapshotPolicy>(
+    k: K,
+    v: import('../../types/entityDesigner').FieldSnapshotPolicy[K],
+  ) =>
+    onChange({
+      sourceEntityType: policy?.sourceEntityType ?? '',
+      sourceFieldId:    policy?.sourceFieldId    ?? '',
+      copyTrigger:      policy?.copyTrigger       ?? 'on_select',
+      overwriteRule:    policy?.overwriteRule     ?? 'never_after_freeze',
+      refreshUntilState: policy?.refreshUntilState,
+      freezeAtState:     policy?.freezeAtState,
+      [k]: v,
+    });
+
+  return <>
+    <InfoBox>
+      Snapshot fields copy a value from a master record at a specific moment and freeze it when a
+      lifecycle state is reached. After freezing, the stored value is never overwritten — corrections
+      require a new version of the parent record.
+    </InfoBox>
+
+    <Row label="Source Entity" desc="Entity that owns the canonical value to copy from">
+      <select className="search-input" style={{ width: '100%' }}
+        value={policy?.sourceEntityType ?? ''}
+        onChange={e => {
+          update('sourceEntityType', e.target.value);
+          update('sourceFieldId', '');
+        }}>
+        <option value="">— Select source entity —</option>
+        {allEntities
+          .filter(e => e.entityType !== currentEntityType)
+          .map(e => <option key={e.entityType} value={e.entityType}>{e.label} ({e.entityType})</option>)}
+      </select>
+    </Row>
+
+    <Row label="Source Field" desc="Field on the source entity whose value will be copied">
+      {sourceFields.length > 0 ? (
+        <select className="search-input" style={{ width: '100%' }}
+          value={policy?.sourceFieldId ?? ''}
+          onChange={e => update('sourceFieldId', e.target.value)}>
+          <option value="">— Select source field —</option>
+          {sourceFields.map(f => (
+            <option key={f.fieldId} value={f.fieldId}>{f.label} ({f.fieldType})</option>
+          ))}
+        </select>
+      ) : (
+        <input className="search-input" style={{ width: '100%', opacity: 0.6, cursor: 'not-allowed' }}
+          placeholder={policy?.sourceEntityType ? 'No copyable fields on source entity' : 'Select a source entity first'}
+          readOnly />
+      )}
+    </Row>
+
+    <Row label="Copy Trigger" desc="When is the value first copied to this field?">
+      <select className="search-input" style={{ width: '100%' }}
+        value={policy?.copyTrigger ?? 'on_select'}
+        onChange={e => update('copyTrigger', e.target.value as import('../../types/entityDesigner').FieldSnapshotPolicy['copyTrigger'])}>
+        <option value="on_select">On Select — when the user picks the source record</option>
+        <option value="on_create">On Create — when the parent record is first saved</option>
+        <option value="on_save">On Save — every save until freeze state is reached</option>
+        <option value="on_state_change">On State Change — when a specific workflow state is entered</option>
+      </select>
+    </Row>
+
+    <Row label="Refresh Until State" desc="Field is refreshed on every copy-trigger event until this workflow state is reached (optional)">
+      <input className="search-input" style={{ width: '100%' }}
+        placeholder="e.g. submitted (leave blank to always refresh)"
+        value={policy?.refreshUntilState ?? ''}
+        onChange={e => update('refreshUntilState', e.target.value || undefined as any)} />
+    </Row>
+
+    <Row label="Freeze At State" desc="When the parent record enters this state, the snapshot value is permanently frozen">
+      <input className="search-input" style={{ width: '100%' }}
+        placeholder="e.g. approved, invoiced, shipped"
+        value={policy?.freezeAtState ?? ''}
+        onChange={e => update('freezeAtState', e.target.value || undefined as any)} />
+    </Row>
+
+    <Row label="Overwrite Rule" desc="What happens when the copy trigger fires again before the freeze state?">
+      <select className="search-input" style={{ width: '100%' }}
+        value={policy?.overwriteRule ?? 'never_after_freeze'}
+        onChange={e => update('overwriteRule', e.target.value as import('../../types/entityDesigner').FieldSnapshotPolicy['overwriteRule'])}>
+        <option value="always_overwrite">Always Overwrite — replace value on every trigger (until freeze)</option>
+        <option value="only_if_empty">Only If Empty — copy only when field is currently blank</option>
+        <option value="never_after_freeze">Never After Freeze — copy once and lock at freeze state</option>
+      </select>
+    </Row>
+  </>;
+}
+
 // ─── Main Component ───────────────────────────────────────────
 
 export default function FieldTypeConfigurator({ fieldType, typeConfig, onChange, disabled, currentEntityType }: Props) {

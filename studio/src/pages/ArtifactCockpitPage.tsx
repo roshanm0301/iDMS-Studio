@@ -569,7 +569,7 @@ export default function ArtifactCockpitPage() {
       default:
         return (
           <Suspense fallback={<TabFallback />}>
-            <EntityDesigner artifactKey={artifactKey} />
+            <EntityDesigner artifactKey={artifactKey} entityType={artifactKey.replace('entity.', '')} />
           </Suspense>
         );
     }

@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Database, Plus, Search, Filter, ChevronDown, ArrowRight, Calendar, Layers } from 'lucide-react';
+import { Database, Plus, Search, ArrowRight, Calendar, Layers } from 'lucide-react';
 import { getEntityDefinitions } from '../data/mockService';
 import { useEntityDesignerStore } from '../hooks/useEntityDesignerStore';
-import type { EntityCategory, EntityStatus } from '../types/entityDesigner';
+import type { EntityCategory, EntityStatus, EntityArchetype } from '../types/entityDesigner';
 import type { LayerCode } from '../types';
 import { LAYER_CSS_CLASSES } from '../utils/entityDesignerConstants';
 
@@ -24,6 +24,25 @@ const CATEGORY_LABELS: Record<EntityCategory, string> = {
 
 // Use shared CSS class constants instead of local definition
 const LAYER_COLORS = LAYER_CSS_CLASSES;
+
+// v2 — Archetype display config
+const ARCHETYPE_CONFIG: Record<EntityArchetype, { label: string; color: string }> = {
+  native_persistent:       { label: 'Native',       color: '#10b981' },
+  virtual_computed:        { label: 'Virtual',       color: '#6366f1' },
+  external_federated:      { label: 'External',      color: '#f59e0b' },
+  materialized_projection: { label: 'Projection',    color: '#8b5cf6' },
+  junction_association:    { label: 'Junction',      color: '#06b6d4' },
+  owned_child:             { label: 'Child',         color: '#64748b' },
+  append_only_record:      { label: 'Append-Only',   color: '#f97316' },
+  system_technical:        { label: 'System',        color: '#94a3b8' },
+  // v3 new archetypes
+  activity_interaction:    { label: 'Activity',      color: '#0ea5e9' },
+  staging_import:          { label: 'Staging',       color: '#a855f7' },
+  high_volume_event_log:   { label: 'Event Log',     color: '#ef4444' },
+  integration_outbox:      { label: 'Outbox',        color: '#14b8a6' },
+  posting_document:        { label: 'Posting Doc',   color: '#e11d48' },
+  reference_code:          { label: 'Reference',     color: '#84cc16' },
+};
 
 const STATUS_COLORS: Record<EntityStatus, string> = {
   active: 'tag-green',
@@ -47,6 +66,7 @@ export default function EntityListPage() {
   const [filterCategory, setFilterCategory] = useState('');
   const [filterLayer, setFilterLayer] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterArchetype, setFilterArchetype] = useState('');
 
   const domains = useMemo(() => [...new Set(allEntities.map(e => e.domain))].sort(), [allEntities]);
   const categories = useMemo(() => [...new Set(allEntities.map(e => e.category))], [allEntities]);
@@ -62,10 +82,11 @@ export default function EntityListPage() {
     if (filterCategory) list = list.filter(e => e.category === filterCategory);
     if (filterLayer) list = list.filter(e => e.owningLayer === filterLayer);
     if (filterStatus) list = list.filter(e => e.status === filterStatus);
+    if (filterArchetype) list = list.filter(e => e.entityArchetype === filterArchetype);
     return list;
-  }, [allEntities, search, filterDomain, filterCategory, filterLayer, filterStatus]);
+  }, [allEntities, search, filterDomain, filterCategory, filterLayer, filterStatus, filterArchetype]);
 
-  const hasFilters = !!(search || filterDomain || filterCategory || filterLayer || filterStatus);
+  const hasFilters = !!(search || filterDomain || filterCategory || filterLayer || filterStatus || filterArchetype);
 
   return (
     <div className="page">
@@ -117,8 +138,15 @@ export default function EntityListPage() {
           <option value="deprecated">Deprecated</option>
         </select>
 
+        <select className="search-input" style={{ width: 'auto' }} value={filterArchetype} onChange={e => setFilterArchetype(e.target.value)}>
+          <option value="">All Archetypes</option>
+          {(Object.keys(ARCHETYPE_CONFIG) as EntityArchetype[]).map(a => (
+            <option key={a} value={a}>{ARCHETYPE_CONFIG[a].label}</option>
+          ))}
+        </select>
+
         {hasFilters && (
-          <button className="btn btn-ghost" onClick={() => { setSearch(''); setFilterDomain(''); setFilterCategory(''); setFilterLayer(''); setFilterStatus(''); }}>
+          <button className="btn btn-ghost" onClick={() => { setSearch(''); setFilterDomain(''); setFilterCategory(''); setFilterLayer(''); setFilterStatus(''); setFilterArchetype(''); }}>
             Clear filters
           </button>
         )}
@@ -172,6 +200,17 @@ export default function EntityListPage() {
                 <span className={`badge ${CATEGORY_COLORS[entity.category]}`}>
                   {CATEGORY_LABELS[entity.category]}
                 </span>
+                {entity.entityArchetype && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center',
+                    padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600,
+                    color: ARCHETYPE_CONFIG[entity.entityArchetype].color,
+                    background: ARCHETYPE_CONFIG[entity.entityArchetype].color + '18',
+                    border: `1px solid ${ARCHETYPE_CONFIG[entity.entityArchetype].color}40`,
+                  }}>
+                    {ARCHETYPE_CONFIG[entity.entityArchetype].label}
+                  </span>
+                )}
                 <span className="tag">{entity.domain}</span>
                 <span className={`badge ${LAYER_COLORS[entity.owningLayer]}`}>
                   {entity.owningLayer}

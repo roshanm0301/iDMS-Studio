@@ -1,0 +1,442 @@
+import type { EntityDefinitionMetadata, EntityGovernanceFlags, EntityRuntimePolicies } from './entity-definition';
+import type { FieldDefinitionMetadata } from './field-definition';
+import type { RelationshipDefinitionMetadata } from './relationship-definition';
+import type { OwnershipScope } from './shared';
+
+export const platformOwnership: OwnershipScope = {
+  owningLayer: 'platform',
+  namespace: 'idms.core',
+  packageId: 'pkg_idms_core',
+};
+
+export const verticalOwnership: OwnershipScope = {
+  owningLayer: 'vertical',
+  namespace: 'idms.automotive',
+  packageId: 'pkg_automotive_service',
+};
+
+const defaultRuntimePolicies: EntityRuntimePolicies = {
+  auditPolicyId: 'audit_transaction_full',
+  securityPolicyId: 'security_default_metadata_admin',
+  apiExposurePolicyId: 'api_internal_only',
+  importPolicyId: 'import_governed',
+  exportPolicyId: 'export_role_based',
+  analyticsPolicyId: 'analytics_standard',
+  searchPolicyId: 'search_enabled',
+  localizationPolicyId: 'locale_india_default',
+};
+
+const defaultGovernanceFlags: EntityGovernanceFlags = {
+  allowExtension: true,
+  allowFieldAddition: true,
+  allowRelationshipAddition: true,
+  allowViewOverride: true,
+  allowActionAddition: true,
+  allowRequirednessRelaxation: false,
+  allowApiExposureOverride: false,
+};
+
+function audit(reason: string) {
+  return {
+    createdBy: 'usr_admin',
+    createdAt: '2026-05-11T10:00:00+05:30',
+    updatedBy: 'usr_admin',
+    updatedAt: '2026-05-11T10:00:00+05:30',
+    activatedBy: 'usr_admin',
+    activatedAt: '2026-05-11T10:05:00+05:30',
+    changeReason: reason,
+  };
+}
+
+export const customerEntity: EntityDefinitionMetadata = {
+  entityId: 'ent_customer',
+  apiName: 'customer',
+  label: 'Customer',
+  pluralLabel: 'Customers',
+  description: 'Customer master used by sales and service transactions.',
+  entityCode: 'CUST',
+  namespace: 'auto_service',
+  classification: {
+    domain: 'crm',
+    module: 'Customer Management',
+    entityCategory: 'master_data',
+    businessObjectType: 'party_master',
+    industryVertical: 'automobile',
+    lookupEligible: true,
+  },
+  ownership: {
+    owningLayer: 'vertical',
+    owningPackageId: 'pkg_automotive_service',
+    owningModule: 'Customer Management',
+    protected: true,
+    extensionPolicyId: 'policy_allow_tenant_extension',
+    overridePolicyId: 'policy_constrain_only',
+  },
+  storage: {
+    storageStrategy: 'physical_table',
+    tableName: 'mst_customer',
+    primaryKeyField: 'id',
+    primaryKeyStrategy: 'uuid',
+    tenantScoped: true,
+    nodeScoped: false,
+    softDeletePolicyId: 'policy_soft_delete_master',
+  },
+  display: {
+    defaultDisplayFieldId: 'fld_customer_full_name',
+    defaultListViewId: 'view_customer_default_list',
+    defaultFormViewId: 'view_customer_default_form',
+    defaultLookupViewId: 'view_customer_lookup',
+    titleFormat: '{full_name}',
+    subtitleFormat: '{mobile}',
+  },
+  lifecycle: {
+    metadataStatus: 'active',
+    activationPolicyId: 'policy_compile_required',
+    versionId: 'ver_customer_1_0_0',
+    activatedAt: '2026-05-11T10:05:00+05:30',
+  },
+  runtimePolicies: defaultRuntimePolicies,
+  governanceFlags: defaultGovernanceFlags,
+  systemAudit: audit('Initial customer master fixture.'),
+  references: {
+    fieldIds: ['fld_customer_full_name', 'fld_customer_mobile'],
+    relationshipIds: [],
+    validationRuleIds: [],
+    securityDefinitionIds: ['sec_customer_workshop_access'],
+    viewIds: ['view_customer_default_list', 'view_customer_default_form', 'view_customer_lookup'],
+    actionIds: [],
+  },
+};
+
+export const vehicleEntity: EntityDefinitionMetadata = {
+  entityId: 'ent_vehicle',
+  apiName: 'vehicle',
+  label: 'Vehicle',
+  pluralLabel: 'Vehicles',
+  description: 'Vehicle master used for workshop and ownership history.',
+  entityCode: 'VEH',
+  namespace: 'auto_service',
+  classification: {
+    domain: 'service',
+    module: 'Workshop Management',
+    entityCategory: 'master_data',
+    businessObjectType: 'asset_master',
+    industryVertical: 'automobile',
+    lookupEligible: true,
+  },
+  ownership: {
+    owningLayer: 'vertical',
+    owningPackageId: 'pkg_automotive_service',
+    owningModule: 'Workshop Management',
+    protected: true,
+    extensionPolicyId: 'policy_allow_tenant_extension',
+    overridePolicyId: 'policy_constrain_only',
+  },
+  storage: {
+    storageStrategy: 'physical_table',
+    tableName: 'mst_vehicle',
+    primaryKeyField: 'id',
+    primaryKeyStrategy: 'uuid',
+    tenantScoped: true,
+    nodeScoped: false,
+    softDeletePolicyId: 'policy_soft_delete_master',
+  },
+  display: {
+    defaultDisplayFieldId: 'fld_vehicle_registration_number',
+    defaultListViewId: 'view_vehicle_default_list',
+    defaultFormViewId: 'view_vehicle_default_form',
+    defaultLookupViewId: 'view_vehicle_lookup',
+    titleFormat: '{registration_number}',
+    subtitleFormat: '{vin}',
+  },
+  lifecycle: {
+    metadataStatus: 'active',
+    activationPolicyId: 'policy_compile_required',
+    versionId: 'ver_vehicle_1_0_0',
+    activatedAt: '2026-05-11T10:05:00+05:30',
+  },
+  runtimePolicies: defaultRuntimePolicies,
+  governanceFlags: defaultGovernanceFlags,
+  systemAudit: audit('Initial vehicle master fixture.'),
+  references: {
+    fieldIds: ['fld_vehicle_registration_number', 'fld_vehicle_vin'],
+    relationshipIds: [],
+    validationRuleIds: [],
+    securityDefinitionIds: ['sec_vehicle_workshop_access'],
+    viewIds: ['view_vehicle_default_list', 'view_vehicle_default_form', 'view_vehicle_lookup'],
+    actionIds: [],
+  },
+};
+
+export const serviceJobCardEntity: EntityDefinitionMetadata = {
+  entityId: 'ent_service_job_card',
+  apiName: 'service_job_card',
+  label: 'Service Job Card',
+  pluralLabel: 'Service Job Cards',
+  description: 'Captures vehicle service work from job card opening to closure.',
+  entityCode: 'SJC',
+  namespace: 'auto_service',
+  classification: {
+    domain: 'service',
+    module: 'Workshop Management',
+    entityCategory: 'transaction',
+    businessObjectType: 'operational_document',
+    industryVertical: 'automobile',
+    lookupEligible: false,
+  },
+  ownership: {
+    owningLayer: 'vertical',
+    owningPackageId: 'pkg_automotive_service',
+    owningModule: 'Workshop Management',
+    protected: true,
+    extensionPolicyId: 'policy_allow_tenant_extension',
+    overridePolicyId: 'policy_constrain_only',
+  },
+  storage: {
+    storageStrategy: 'physical_table',
+    tableName: 'txn_service_job_card',
+    primaryKeyField: 'id',
+    primaryKeyStrategy: 'uuid',
+    tenantScoped: true,
+    nodeScoped: true,
+    softDeletePolicyId: 'policy_soft_delete_transaction',
+    partitionPolicyId: null,
+    retentionPolicyId: null,
+  },
+  display: {
+    defaultDisplayFieldId: 'fld_job_card_number',
+    defaultListViewId: 'view_service_job_card_list',
+    defaultFormViewId: 'view_service_job_card_form',
+    defaultLookupViewId: null,
+    titleFormat: '{job_card_number}',
+    subtitleFormat: '{customer_id} - {vehicle_id} - {job_status}',
+  },
+  lifecycle: {
+    metadataStatus: 'active',
+    recordLifecycleModelId: 'lifecycle_service_job_card',
+    activationPolicyId: 'policy_compile_required',
+    versionId: 'ver_service_job_card_1_0_0',
+    activatedAt: '2026-05-11T10:05:00+05:30',
+  },
+  runtimePolicies: {
+    ...defaultRuntimePolicies,
+    securityPolicyId: 'security_service_job_card',
+    importPolicyId: 'import_disabled',
+    analyticsPolicyId: 'analytics_service_operations',
+  },
+  governanceFlags: defaultGovernanceFlags,
+  systemAudit: audit('Initial creation from Automobile Service template.'),
+  references: {
+    fieldIds: [
+      'fld_job_card_number',
+      'fld_customer_id',
+      'fld_vehicle_id',
+      'fld_service_type',
+      'fld_job_status',
+      'fld_complaint_notes',
+      'fld_estimated_amount',
+      'fld_manager_notes',
+    ],
+    relationshipIds: ['rel_job_card_customer', 'rel_job_card_vehicle'],
+    validationRuleIds: ['val_job_card_customer_required_submit'],
+    securityDefinitionIds: ['sec_service_job_card_service_advisor', 'sec_service_job_card_service_manager'],
+    viewIds: ['view_service_job_card_list', 'view_service_job_card_form'],
+    actionIds: [],
+  },
+};
+
+function baseField(overrides: Omit<FieldDefinitionMetadata, 'ownership' | 'source' | 'storage' | 'behavior' | 'governance' | 'lifecycle' | 'typeConfig'> & Partial<FieldDefinitionMetadata>): FieldDefinitionMetadata {
+  return {
+    ownership: verticalOwnership,
+    source: 'local',
+    storage: {
+      strategy: 'physical_column',
+      columnName: overrides.apiName,
+      nullable: false,
+    },
+    typeConfig: {},
+    behavior: {
+      required: false,
+      immutable: false,
+      searchable: false,
+      sortable: false,
+      filterable: false,
+    },
+    governance: {
+      classification: 'internal',
+      maskByDefault: false,
+      allowImport: true,
+      allowExport: true,
+      apiInputAllowed: true,
+      apiOutputAllowed: true,
+    },
+    lifecycle: {
+      status: 'active',
+      metadataStatus: 'active',
+    },
+    ...overrides,
+  };
+}
+
+export const serviceJobCardFields: FieldDefinitionMetadata[] = [
+  baseField({
+    fieldId: 'fld_job_card_number',
+    entityId: 'ent_service_job_card',
+    apiName: 'job_card_number',
+    label: 'Job Card Number',
+    source: 'system',
+    typing: { businessType: 'identifier', logicalType: 'auto_number', postgresType: 'varchar', uiControl: 'read_only' },
+    behavior: { required: true, immutable: true, searchable: true, sortable: true, filterable: true },
+    typeConfig: { sequenceScope: 'node', pattern: 'SJC-{node}-{yyyy}-{000000}' },
+  }),
+  baseField({
+    fieldId: 'fld_customer_id',
+    entityId: 'ent_service_job_card',
+    apiName: 'customer_id',
+    label: 'Customer',
+    typing: { businessType: 'relationship_key', logicalType: 'entity_reference', postgresType: 'uuid', uiControl: 'lookup' },
+    behavior: { required: true, immutable: false, searchable: true, sortable: false, filterable: true },
+    typeConfig: { targetEntityId: 'ent_customer', relationshipId: 'rel_job_card_customer' },
+  }),
+  baseField({
+    fieldId: 'fld_vehicle_id',
+    entityId: 'ent_service_job_card',
+    apiName: 'vehicle_id',
+    label: 'Vehicle',
+    typing: { businessType: 'relationship_key', logicalType: 'entity_reference', postgresType: 'uuid', uiControl: 'lookup' },
+    behavior: { required: true, immutable: false, searchable: true, sortable: false, filterable: true },
+    typeConfig: { targetEntityId: 'ent_vehicle', relationshipId: 'rel_job_card_vehicle' },
+  }),
+  baseField({
+    fieldId: 'fld_service_type',
+    entityId: 'ent_service_job_card',
+    apiName: 'service_type',
+    label: 'Service Type',
+    typing: { businessType: 'status', logicalType: 'enum', postgresType: 'varchar', uiControl: 'dropdown' },
+    behavior: { required: true, immutable: false, searchable: false, sortable: false, filterable: true },
+    typeConfig: {
+      options: [
+        { code: 'free_service', label: 'Free Service' },
+        { code: 'paid_service', label: 'Paid Service' },
+        { code: 'repair', label: 'Repair' },
+      ],
+    },
+  }),
+  baseField({
+    fieldId: 'fld_job_status',
+    entityId: 'ent_service_job_card',
+    apiName: 'job_status',
+    label: 'Status',
+    source: 'system',
+    typing: { businessType: 'status', logicalType: 'enum', postgresType: 'varchar', uiControl: 'dropdown' },
+    behavior: { required: true, immutable: false, searchable: false, sortable: true, filterable: true },
+    typeConfig: {
+      options: [
+        { code: 'open', label: 'Open' },
+        { code: 'submitted', label: 'Submitted' },
+        { code: 'closed', label: 'Closed' },
+      ],
+    },
+  }),
+  baseField({
+    fieldId: 'fld_complaint_notes',
+    entityId: 'ent_service_job_card',
+    apiName: 'complaint_notes',
+    label: 'Complaint Notes',
+    typing: { businessType: 'plain_data', logicalType: 'text', postgresType: 'text', uiControl: 'textarea' },
+    storage: { strategy: 'physical_column', columnName: 'complaint_notes', nullable: true },
+  }),
+  baseField({
+    fieldId: 'fld_estimated_amount',
+    entityId: 'ent_service_job_card',
+    apiName: 'estimated_amount',
+    label: 'Estimated Amount',
+    typing: { businessType: 'currency_amount', logicalType: 'currency', postgresType: 'numeric', uiControl: 'currency_input' },
+    storage: { strategy: 'physical_column', columnName: 'estimated_amount', nullable: true },
+    behavior: { required: false, immutable: false, searchable: false, sortable: true, filterable: true },
+  }),
+  baseField({
+    fieldId: 'fld_manager_notes',
+    entityId: 'ent_service_job_card',
+    apiName: 'manager_notes',
+    label: 'Manager Notes',
+    typing: { businessType: 'plain_data', logicalType: 'text', postgresType: 'text', uiControl: 'textarea' },
+    storage: { strategy: 'physical_column', columnName: 'manager_notes', nullable: true },
+    governance: {
+      classification: 'sensitive',
+      maskByDefault: false,
+      allowImport: false,
+      allowExport: false,
+      apiInputAllowed: true,
+      apiOutputAllowed: true,
+    },
+  }),
+];
+
+export const customerVehicleFields: FieldDefinitionMetadata[] = [
+  baseField({
+    fieldId: 'fld_customer_full_name',
+    entityId: 'ent_customer',
+    apiName: 'full_name',
+    label: 'Full Name',
+    typing: { businessType: 'plain_data', logicalType: 'text', postgresType: 'varchar', uiControl: 'text_input' },
+    behavior: { required: true, immutable: false, searchable: true, sortable: true, filterable: false },
+  }),
+  baseField({
+    fieldId: 'fld_customer_mobile',
+    entityId: 'ent_customer',
+    apiName: 'mobile',
+    label: 'Mobile',
+    typing: { businessType: 'identifier', logicalType: 'text_identifier', postgresType: 'varchar', uiControl: 'text_input' },
+    behavior: { required: true, immutable: false, searchable: true, sortable: false, filterable: false },
+  }),
+  baseField({
+    fieldId: 'fld_vehicle_registration_number',
+    entityId: 'ent_vehicle',
+    apiName: 'registration_number',
+    label: 'Registration Number',
+    typing: { businessType: 'identifier', logicalType: 'text_identifier', postgresType: 'varchar', uiControl: 'text_input' },
+    behavior: { required: true, immutable: false, searchable: true, sortable: true, filterable: false },
+  }),
+  baseField({
+    fieldId: 'fld_vehicle_vin',
+    entityId: 'ent_vehicle',
+    apiName: 'vin',
+    label: 'VIN',
+    typing: { businessType: 'vin', logicalType: 'text_identifier', postgresType: 'varchar', uiControl: 'text_input' },
+    behavior: { required: false, immutable: true, searchable: true, sortable: false, filterable: false },
+  }),
+];
+
+export const serviceJobCardRelationships: RelationshipDefinitionMetadata[] = [
+  {
+    relationshipId: 'rel_job_card_customer',
+    apiName: 'job_card_customer',
+    label: 'Job Card Customer',
+    relationshipType: 'lookup',
+    sourceEntityId: 'ent_service_job_card',
+    targetEntityId: 'ent_customer',
+    sourceFieldId: 'fld_customer_id',
+    cardinality: 'many_to_one',
+    required: true,
+    ownership: verticalOwnership,
+    behavior: { deleteBehavior: 'restrict', copyRulesAllowed: true, targetRecordValidationRequired: true },
+    lifecycle: { metadataStatus: 'active' },
+    version: { versionId: 'ver_rel_job_card_customer_1_0_0', version: '1.0.0', status: 'active' },
+  },
+  {
+    relationshipId: 'rel_job_card_vehicle',
+    apiName: 'job_card_vehicle',
+    label: 'Job Card Vehicle',
+    relationshipType: 'lookup',
+    sourceEntityId: 'ent_service_job_card',
+    targetEntityId: 'ent_vehicle',
+    sourceFieldId: 'fld_vehicle_id',
+    cardinality: 'many_to_one',
+    required: true,
+    ownership: verticalOwnership,
+    behavior: { deleteBehavior: 'restrict', copyRulesAllowed: true, targetRecordValidationRequired: true },
+    lifecycle: { metadataStatus: 'active' },
+    version: { versionId: 'ver_rel_job_card_vehicle_1_0_0', version: '1.0.0', status: 'active' },
+  },
+];

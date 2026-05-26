@@ -18,6 +18,8 @@ import SchemaDiffViewer from '../components/entity-designer/SchemaDiffViewer';
 import GovernancePolicyHints from '../components/entity-designer/GovernancePolicyHints';
 import { ViewsBuilder } from '../components/entity-designer/ViewsBuilder';
 import ActionsPanel from '../components/entity-designer/ActionsPanel';
+import RelationshipsPanel from '../components/entity-designer/RelationshipsPanel';
+import ValidationRulesPanel from '../components/entity-designer/ValidationRulesPanel';
 
 import type { SchemaSubTab, FieldInstance } from '../types/entityDesigner';
 
@@ -347,8 +349,10 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
 
   const TABS: { key: SchemaSubTab; label: string }[] = [
     { key: 'fields',     label: 'Fields' },
+    { key: 'relations',  label: 'Relations' },
     { key: 'views',      label: 'Views' },
     { key: 'actions',    label: 'Actions' },
+    { key: 'validation', label: 'Validation' },
     { key: 'diff',       label: 'Diff' },
     { key: 'governance', label: 'Governance' },
     // 'imports' stays in SchemaSubTab type but is not yet rendered
@@ -417,6 +421,12 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
               </div>
             )}
 
+            {activeTab === 'relations' && (
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <RelationshipsPanel entity={entity} />
+              </div>
+            )}
+
             {activeTab === 'views' && (
               <div style={{ flex: 1, overflow: 'hidden' }}>
                 <ViewsBuilder entity={entity} editingLayer={editingLayer} />
@@ -439,6 +449,12 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
               </div>
             )}
 
+            {activeTab === 'validation' && (
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <ValidationRulesPanel entity={entity} />
+              </div>
+            )}
+
             {activeTab === 'governance' && (
               <div style={{ flex: 1, overflow: 'hidden' }}>
                 <GovernancePolicyHints entity={entity} />
@@ -447,15 +463,17 @@ export default function SchemaBuilderPage({ entityType: propEntityType }: Props)
           </div>
         </div>
 
-        {/* Right: Field Inspector */}
-        <div style={{ width: '360px', flexShrink: 0, borderLeft: '1px solid var(--border)', overflow: 'hidden' }}>
-          <FieldInspector
-            entity={entity}
-            selectedField={selectedField}
-            onEditField={handleEditField}
-            onSaveField={handleSaveField}
-          />
-        </div>
+        {/* Right: Field Inspector — hidden when validation tab is active (panel has its own split layout) */}
+        {activeTab !== 'validation' && (
+          <div style={{ width: '360px', flexShrink: 0, borderLeft: '1px solid var(--border)', overflow: 'hidden' }}>
+            <FieldInspector
+              entity={entity}
+              selectedField={selectedField}
+              onEditField={handleEditField}
+              onSaveField={handleSaveField}
+            />
+          </div>
+        )}
 
         {/* Right slide-in drawer — Issues or Schema JSON */}
         <RightDrawer open={rightPanel !== null} onClose={() => setRightPanel(null)}>
