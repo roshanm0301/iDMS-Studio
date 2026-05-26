@@ -7,6 +7,9 @@ import type {
   LifecycleTransitionMeta, SchemaSubTab, AddFieldMode, EntityStatus,
   EntityView, ViewFieldConfig,
 } from '../types/entityDesigner';
+import type { EntityDefinitionMetadata, FieldDefinitionMetadata } from '../metadata';
+import type { RelationshipDefinition } from '../types/relationshipDesigner';
+import type { ValidationRuleDefinition } from '../types/validationDesigner';
 import { MOCK_ENTITIES } from '../data/entityDesignerData';
 
 // ===== Allowed lifecycle transitions =====
@@ -14,12 +17,16 @@ const ALLOWED_TRANSITIONS: Record<FieldLifecycleState, FieldLifecycleState[]> = 
   draft:    ['active', 'disabled'],
   active:   ['disabled'],
   disabled: ['active'],
+  deprecated: ['active'],
 };
 
 interface EntityDesignerStore {
   // ── Entity mutations ──────────────────────────────────────
   savedEntities: Record<string, EntityDefinition>;
+  metadataEntities: Record<string, EntityDefinitionMetadata>;
+  metadataFields: Record<string, FieldDefinitionMetadata[]>;
   createEntity: (entity: EntityDefinition) => void;
+  createEntityMetadataBundle: (entity: EntityDefinitionMetadata, fields: FieldDefinitionMetadata[]) => void;
   updateEntity: (entityType: string, patch: Partial<EntityDefinition>) => void;
   deleteEntity: (entityType: string) => void;
 
@@ -40,6 +47,17 @@ interface EntityDesignerStore {
   updateView: (entityType: string, viewId: string, patch: Partial<EntityView>) => void;
   deleteView: (entityType: string, viewId: string) => void;
   updateViewFieldConfig: (entityType: string, viewId: string, fieldId: string, patch: Partial<ViewFieldConfig>) => void;
+
+  // ── Relationship mutations ────────────────────────────────
+  savedRelationships: Record<string, RelationshipDefinition>;
+  createRelationship: (rel: RelationshipDefinition) => void;
+  updateRelationship: (id: string, patch: Partial<RelationshipDefinition>) => void;
+  deleteRelationship: (id: string) => void;
+
+  // ── Validation rule mutations ─────────────────────────────
+  savedValidationRules: Record<string, ValidationRuleDefinition>;
+  saveValidationRule: (rule: ValidationRuleDefinition) => void;
+  deleteValidationRule: (ruleId: string) => void;
 
   // ── Reverse relation panel overrides ─────────────────────
   // key: targetEntityType → Record<"sourceEntity:sourceField", showInPanel>
@@ -76,6 +94,8 @@ interface EntityDesignerStore {
 export const useEntityDesignerStore = create<EntityDesignerStore>((set, get) => ({
   // ── Entity mutations ──────────────────────────────────────
   savedEntities: {},
+  metadataEntities: {},
+  metadataFields: {},
 
   createEntity: (entity) => {
     set(s => ({
@@ -89,6 +109,19 @@ export const useEntityDesignerStore = create<EntityDesignerStore>((set, get) => 
       },
     }));
     get().showToast(`Entity "${entity.label}" created successfully`, 'success');
+  },
+
+  createEntityMetadataBundle: (entity, fields) => {
+    set(s => ({
+      metadataEntities: {
+        ...s.metadataEntities,
+        [entity.apiName]: entity,
+      },
+      metadataFields: {
+        ...s.metadataFields,
+        [entity.entityId]: fields,
+      },
+    }));
   },
 
   updateEntity: (entityType, patch) => {
@@ -341,6 +374,71 @@ export const useEntityDesignerStore = create<EntityDesignerStore>((set, get) => 
     if (!pendingField) return;
     get().saveSchemaField(pendingField.entityType, pendingField.field);
     set({ pendingField: null, addFieldMode: null });
+  },
+
+  // ── Relationship mutations ────────────────────────────────
+  savedRelationships: {},
+
+  createRelationship: (rel) => {
+    set(s => ({
+      savedRelationships: {
+        ...s.savedRelationships,
+        [rel.relationshipId]: {
+          ...rel,
+          createdAt: rel.createdAt ?? new Date().toISOString(),
+          lastModified: new Date().toISOString(),
+        },
+      },
+    }));
+    get().showToast(`Relationship "${rel.label}" created successfully`, 'success');
+  },
+
+  updateRelationship: (id, patch) => {
+    set(s => {
+      const existing = s.savedRelationships[id];
+      if (!existing) return s;
+      return {
+        savedRelationships: {
+          ...s.savedRelationships,
+          [id]: { ...existing, ...patch, lastModified: new Date().toISOString() },
+        },
+      };
+    });
+  },
+
+  deleteRelationship: (id) => {
+    set(s => {
+      const next = { ...s.savedRelationships };
+      delete next[id];
+      return { savedRelationships: next };
+    });
+    get().showToast('Relationship deleted', 'success');
+  },
+
+  // ── Validation rule mutations ─────────────────────────────
+  savedValidationRules: {},
+
+  saveValidationRule: (rule) => {
+    set(s => ({
+      savedValidationRules: {
+        ...s.savedValidationRules,
+        [rule.validationRuleId]: {
+          ...rule,
+          lastModified: new Date().toISOString(),
+          createdAt: s.savedValidationRules[rule.validationRuleId]?.createdAt ?? new Date().toISOString(),
+        },
+      },
+    }));
+    get().showToast(`Validation rule "${rule.label}" saved`, 'success');
+  },
+
+  deleteValidationRule: (ruleId) => {
+    set(s => {
+      const next = { ...s.savedValidationRules };
+      delete next[ruleId];
+      return { savedValidationRules: next };
+    });
+    get().showToast('Validation rule deleted', 'info');
   },
 
   // ── Toast ─────────────────────────────────────────────────

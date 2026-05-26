@@ -26,18 +26,21 @@ const ALLOWED_TRANSITIONS: Record<FieldLifecycleState, FieldLifecycleState[]> = 
   draft:    ['active', 'disabled'],
   active:   ['disabled'],
   disabled: ['active'],
+  deprecated: ['active'],
 };
 
 const TRANSITION_LABELS: Record<FieldLifecycleState, string> = {
-  draft:    'Draft',
-  active:   'Active',
-  disabled: 'Disabled',
+  draft:      'Draft',
+  active:     'Active',
+  disabled:   'Disabled',
+  deprecated: 'Deprecated',
 };
 
 const TRANSITION_COLORS: Record<FieldLifecycleState, string> = {
-  draft:    '#6b7280',
-  active:   '#10b981',
-  disabled: '#ef4444',
+  draft:      '#6b7280',
+  active:     '#10b981',
+  disabled:   '#ef4444',
+  deprecated: '#f59e0b',
 };
 
 interface Props {

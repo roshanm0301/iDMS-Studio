@@ -12,6 +12,9 @@ import AttributeCatalogPage from './pages/AttributeCatalogPage';
 const EntityListPage = lazy(() => import('./pages/EntityListPage'));
 const CreateEntityPage = lazy(() => import('./pages/CreateEntityPage'));
 const SchemaBuilderPage = lazy(() => import('./pages/SchemaBuilderPage'));
+const RelationshipListPage = lazy(() => import('./pages/RelationshipListPage'));
+const CreateRelationshipPage = lazy(() => import('./pages/CreateRelationshipPage'));
+const RelationshipBuilderPage = lazy(() => import('./pages/RelationshipBuilderPage'));
 
 const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } } });
 
@@ -42,6 +45,15 @@ function App() {
             } />
             <Route path="entities/:entityType/schema" element={
               <Suspense fallback={<PageLoader />}><SchemaBuilderPage /></Suspense>
+            } />
+            <Route path="relationships" element={
+              <Suspense fallback={<PageLoader />}><RelationshipListPage /></Suspense>
+            } />
+            <Route path="relationships/new" element={
+              <Suspense fallback={<PageLoader />}><CreateRelationshipPage /></Suspense>
+            } />
+            <Route path="relationships/:relationshipId" element={
+              <Suspense fallback={<PageLoader />}><RelationshipBuilderPage /></Suspense>
             } />
             <Route path="settings" element={
               <div className="empty">

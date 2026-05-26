@@ -10,15 +10,19 @@ import type {
   Layer, ExplainTrace, ScopeContext
 } from '../types';
 import {
-  MOCK_ENTITIES, ENTITY_TEMPLATES, ADVANCED_ATTRIBUTE_CATALOG,
+  MOCK_ENTITIES, ADVANCED_ATTRIBUTE_CATALOG,
   MOCK_FIELD_DEPENDENCIES, MOCK_SCHEMA_DIFF, MOCK_COMPILE_READINESS,
   MOCK_DOCUMENT_CODE_SETTINGS, MOCK_MASTER_CODE_SETTINGS,
+  MOCK_RELATIONSHIPS,
+  MOCK_VALIDATION_RULES,
 } from './entityDesignerData';
 import type {
-  EntityDefinition, EntityTemplate, AdvancedCatalogAttribute,
+  EntityDefinition, AdvancedCatalogAttribute,
   FieldDependency, SchemaDiff, CompileReadiness,
   DocumentCodeSetting, MasterCodeSetting,
 } from '../types/entityDesigner';
+import type { RelationshipDefinition } from '../types/relationshipDesigner';
+import type { ValidationRuleDefinition } from '../types/validationDesigner';
 
 // ===== Raw seed =====
 const seed = seedData as any;
@@ -157,8 +161,6 @@ export const getEntityDefinition = (
 ): EntityDefinition | undefined =>
   savedEntities[entityType] ?? MOCK_ENTITIES.find(e => e.entityType === entityType);
 
-export const getEntityTemplates = (): EntityTemplate[] => ENTITY_TEMPLATES;
-
 export const getAdvancedAttributeCatalog = (): AdvancedCatalogAttribute[] =>
   ADVANCED_ATTRIBUTE_CATALOG;
 
@@ -221,6 +223,70 @@ const OPS: Record<string, (a: unknown, b: unknown) => boolean> = {
   'startsWith': (a, b) => String(a).toLowerCase().startsWith(String(b).toLowerCase()),
   'in':         (a, b) => (Array.isArray(b) ? b : String(b).split(',')).map(s => String(s).trim()).includes(String(a)),
 };
+
+// ===== Relationship Accessor Functions =====
+
+/**
+ * Returns all known relationships, merging mock data with any relationships
+ * saved in the store (savedRels keys override mock entries with the same ID).
+ */
+export function getRelationships(savedRels?: Record<string, RelationshipDefinition>): RelationshipDefinition[] {
+  const saved = savedRels ? Object.values(savedRels) : [];
+  const savedIds = new Set(saved.map(r => r.relationshipId));
+  const mockFiltered = MOCK_RELATIONSHIPS.filter(r => !savedIds.has(r.relationshipId));
+  return [...mockFiltered, ...saved];
+}
+
+/**
+ * Returns a single relationship by ID, checking saved overrides first.
+ */
+export function getRelationship(
+  id: string,
+  savedRels?: Record<string, RelationshipDefinition>,
+): RelationshipDefinition | undefined {
+  if (savedRels?.[id]) return savedRels[id];
+  return MOCK_RELATIONSHIPS.find(r => r.relationshipId === id);
+}
+
+/**
+ * Returns all relationships where the given entityType appears as source,
+ * non-polymorphic target, or is in the polymorphic allowedEntityIds list.
+ */
+export function getRelationshipsForEntity(
+  entityType: string,
+  savedRels?: Record<string, RelationshipDefinition>,
+): RelationshipDefinition[] {
+  return getRelationships(savedRels).filter(
+    r =>
+      r.source.entityId === entityType ||
+      r.target.entityId === entityType ||
+      (r.target.allowedEntityIds ?? []).includes(entityType),
+  );
+}
+
+// ===== Validation Rule Accessor Functions =====
+
+export function getValidationRules(savedRules?: Record<string, ValidationRuleDefinition>): ValidationRuleDefinition[] {
+  const saved = savedRules ? Object.values(savedRules) : [];
+  const savedIds = new Set(saved.map(r => r.validationRuleId));
+  const mockFiltered = MOCK_VALIDATION_RULES.filter(r => !savedIds.has(r.validationRuleId));
+  return [...mockFiltered, ...saved];
+}
+
+export function getValidationRule(
+  id: string,
+  savedRules?: Record<string, ValidationRuleDefinition>,
+): ValidationRuleDefinition | undefined {
+  if (savedRules?.[id]) return savedRules[id];
+  return MOCK_VALIDATION_RULES.find(r => r.validationRuleId === id);
+}
+
+export function getValidationRulesForEntity(
+  entityType: string,
+  savedRules?: Record<string, ValidationRuleDefinition>,
+): ValidationRuleDefinition[] {
+  return getValidationRules(savedRules).filter(r => r.entityId === entityType);
+}
 
 function getNestedVal(obj: any, path: string): unknown {
   return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);

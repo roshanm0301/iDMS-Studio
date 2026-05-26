@@ -2,15 +2,19 @@ import { useState, useMemo } from 'react';
 import {
   X, Search, BookOpen, FileText, AlertTriangle,
   ChevronDown, ChevronRight, Lock, Check, Info,
+  Database, Cpu, Globe, BarChart2, Link2, List, BookOpen as BookOpenIcon,
+  Shield, Camera, Grid, Layers,
 } from 'lucide-react';
 import { getAdvancedAttributeCatalog, getEntityDefinitions } from '../../data/mockService';
 import { useEntityDesignerStore } from '../../hooks/useEntityDesignerStore';
-import FieldTypeConfigurator from './FieldTypeConfigurator';
+import FieldTypeConfigurator, { SnapshotConfig } from './FieldTypeConfigurator';
 import OverlayConfirmationPanel from './OverlayConfirmationPanel';
 import type {
   FieldInstance, FieldTypeCode, DataClassification, AdvancedCatalogAttribute,
   OverlayOperation, PresenceBehavior, EditabilityBehavior, VisibilityBehavior,
   AuditBehavior, DefaultSource, FieldDisplayFormat, DateFormatOption,
+  FieldSemanticRole, FieldArchetypeCode, FieldMutabilityMode, FieldPersistenceMode,
+  FieldSnapshotPolicy,
 } from '../../types/entityDesigner';
 import type { LayerCode } from '../../types';
 import { toSlug, defaultDisplayFormat } from '../../utils/entityDesignerUtils';
@@ -31,10 +35,182 @@ interface Props {
   constrainMode?: FieldInstance | null;
 }
 
-type DrawerStep = 'source' | 'catalog' | 'identity' | 'configure' | 'behavior' | 'governance';
+// v2 Field Families — 11 archetypes for the first wizard step
+export type FieldFamily =
+  | 'stored'        // Standard stored field — user enters value, stored in own column
+  | 'reference'     // Reference/Relationship — FK to another entity (entity_ref)
+  | 'value_set'     // Value-Set/Picklist — value chosen from a list (select, multi_select)
+  | 'computed'      // Computed — formula-derived value (virtual or persisted)
+  | 'rollup'        // Rollup/Aggregate — SUM/COUNT/AVG from child entity records
+  | 'snapshot'      // Snapshot/Frozen-Copy — point-in-time copy that freezes at a lifecycle event
+  | 'external'      // External/Provider — synced from / mapped to an external system
+  | 'projection'    // Projection — re-exposed from a source entity in a projection
+  | 'compound'      // Compound — multi-part value (phone = country_code + number)
+  | 'media'         // Media/File — attachment, image, signature, barcode
+  | 'system';       // System/Technical — platform-managed (record_id, tenant_id, created_at)
+
+interface FamilyDef {
+  value: FieldFamily;
+  label: string;
+  desc: string;
+  defaults: string;   // "Defaults: X · Y · Z" badge text
+  // v2 metadata defaults applied when this family is selected:
+  fieldArchetype: FieldArchetypeCode;
+  fieldMutabilityMode: FieldMutabilityMode;
+  fieldPersistenceMode: FieldPersistenceMode;
+  defaultFieldType: FieldTypeCode;
+}
+
+const FAMILY_DEFS: FamilyDef[] = [
+  {
+    value: 'stored',
+    label: 'Standard Stored',
+    desc: 'User-entered or imported value stored in its own column. The most common field type.',
+    defaults: 'User-editable · Physical column · Direct entry',
+    fieldArchetype: 'stored_business',
+    fieldMutabilityMode: 'user_editable',
+    fieldPersistenceMode: 'physical_column',
+    defaultFieldType: 'text',
+  },
+  {
+    value: 'reference',
+    label: 'Reference / Relationship',
+    desc: 'Foreign-key reference to another entity record. Shows a lookup picker in the UI.',
+    defaults: 'Entity lookup · Physical column · User-editable',
+    fieldArchetype: 'relationship_reference',
+    fieldMutabilityMode: 'user_editable',
+    fieldPersistenceMode: 'physical_column',
+    defaultFieldType: 'entity_ref',
+  },
+  {
+    value: 'value_set',
+    label: 'Value-Set / Picklist',
+    desc: 'Value chosen from a closed or governed list. Inline list, master picklist, or dependent cascade.',
+    defaults: 'Value set · Physical column · User-editable',
+    fieldArchetype: 'value_set',
+    fieldMutabilityMode: 'user_editable',
+    fieldPersistenceMode: 'physical_column',
+    defaultFieldType: 'select',
+  },
+  {
+    value: 'computed',
+    label: 'Computed / Formula',
+    desc: 'Value derived from a formula over sibling fields. Can be virtual (no storage) or persisted.',
+    defaults: 'Formula · Virtual or stored · Read-only',
+    fieldArchetype: 'computed_virtual',
+    fieldMutabilityMode: 'derived_read_only',
+    fieldPersistenceMode: 'generated_virtual',
+    defaultFieldType: 'computed',
+  },
+  {
+    value: 'rollup',
+    label: 'Rollup / Aggregate',
+    desc: 'Aggregates values from related child records using SUM, COUNT, AVG, MIN, or MAX.',
+    defaults: 'Rollup · Persisted computed · Read-only',
+    fieldArchetype: 'rollup',
+    fieldMutabilityMode: 'derived_read_only',
+    fieldPersistenceMode: 'relation_backed',
+    defaultFieldType: 'rollup',
+  },
+  {
+    value: 'snapshot',
+    label: 'Snapshot / Frozen Copy',
+    desc: 'Point-in-time copy of a master field that freezes when a lifecycle event fires. Used for customer name on invoices, price on posted orders.',
+    defaults: 'Snapshot · Physical column · Freeze-on-state',
+    fieldArchetype: 'snapshot_copy',
+    fieldMutabilityMode: 'snapshot_refreshable_until_freeze',
+    fieldPersistenceMode: 'snapshot_column',
+    defaultFieldType: 'text',
+  },
+  {
+    value: 'external',
+    label: 'External / Provider',
+    desc: 'Value synced from an external system (ERP, OEM portal, CRM). iDMS does not own the canonical value.',
+    defaults: 'External mapped · Provider-backed · Integration-only',
+    fieldArchetype: 'external_mapped',
+    fieldMutabilityMode: 'integration_only',
+    fieldPersistenceMode: 'provider_backed',
+    defaultFieldType: 'text',
+  },
+  {
+    value: 'projection',
+    label: 'Projection',
+    desc: 'Re-exposes a field from a source entity in a projection or materialized view entity.',
+    defaults: 'Projected · Query-projected · Read-only',
+    fieldArchetype: 'projection_field',
+    fieldMutabilityMode: 'derived_read_only',
+    fieldPersistenceMode: 'query_projected',
+    defaultFieldType: 'text',
+  },
+  {
+    value: 'compound',
+    label: 'Compound / Multi-Part',
+    desc: 'A multi-part value with named sub-fields (e.g. full address = line1 + city + state + pincode).',
+    defaults: 'Compound parent · Physical columns · User-editable',
+    fieldArchetype: 'compound_parent',
+    fieldMutabilityMode: 'user_editable',
+    fieldPersistenceMode: 'physical_column',
+    defaultFieldType: 'text',
+  },
+  {
+    value: 'media',
+    label: 'Media / File',
+    desc: 'File upload, image, signature capture, or barcode/QR. Stores a reference to the binary.',
+    defaults: 'Media reference · Physical column · User-editable',
+    fieldArchetype: 'media_reference',
+    fieldMutabilityMode: 'user_editable',
+    fieldPersistenceMode: 'physical_column',
+    defaultFieldType: 'file',
+  },
+  {
+    value: 'system',
+    label: 'System / Technical',
+    desc: 'Platform-managed field. Auto-generated by the system — record_id, tenant_id, created_at, etc.',
+    defaults: 'System-generated · Physical column · System-only',
+    fieldArchetype: 'system_generated',
+    fieldMutabilityMode: 'system_only',
+    fieldPersistenceMode: 'physical_column',
+    defaultFieldType: 'text',
+  },
+];
+
+// Semantic role definitions for the identity step
+const SEMANTIC_ROLE_DEFS: { value: FieldSemanticRole; label: string; desc: string }[] = [
+  { value: 'business_attribute', label: 'Business Attribute',  desc: 'Core business fact — the most common role' },
+  { value: 'measure',            label: 'Measure',             desc: 'Quantitative metric suitable for aggregation (amount, quantity, rate)' },
+  { value: 'dimension',          label: 'Dimension',           desc: 'Categorical attribute used for grouping or filtering (region, category, type)' },
+  { value: 'display_name',       label: 'Display Name',        desc: 'Canonical label shown in dropdowns, search, and notifications' },
+  { value: 'status',             label: 'Status / Lifecycle',  desc: 'Workflow or lifecycle state carrier' },
+  { value: 'business_key',       label: 'Business Key',        desc: 'Human-facing unique identifier (order number, invoice number)' },
+  { value: 'alternate_key',      label: 'Alternate Key',       desc: 'Additional unique identifier (VIN, registration number)' },
+  { value: 'external_id',        label: 'External ID',         desc: 'Integration upsert / matching key (ERP customer ID, OEM reference)' },
+  { value: 'primary_key',        label: 'Primary Key',         desc: 'Physical/logical record identity — usually system-generated' },
+  { value: 'scope_key',          label: 'Scope / Partition Key', desc: 'Tenant/company/node partition key (tenant_id, node_id)' },
+  { value: 'audit',              label: 'Audit',               desc: 'System-managed change-tracking (created_at, created_by, updated_at)' },
+  { value: 'derived_indicator',  label: 'Derived Indicator',   desc: 'Computed flag or indicator (is_overdue, is_gst_registered, is_active)' },
+  { value: 'snapshot_attribute', label: 'Snapshot Attribute',  desc: 'Point-in-time copy of a master field (frozen customer name, frozen price)' },
+];
+
+// Family → suggested semantic roles (first item is the default)
+const FAMILY_SEMANTIC_ROLES: Record<FieldFamily, FieldSemanticRole[]> = {
+  stored:     ['business_attribute', 'measure', 'dimension', 'display_name', 'status', 'business_key'],
+  reference:  ['business_attribute', 'dimension', 'external_id'],
+  value_set:  ['business_attribute', 'status', 'dimension'],
+  computed:   ['derived_indicator', 'measure', 'business_attribute'],
+  rollup:     ['measure', 'derived_indicator'],
+  snapshot:   ['snapshot_attribute', 'business_attribute'],
+  external:   ['external_id', 'business_attribute', 'alternate_key'],
+  projection: ['business_attribute', 'measure', 'dimension'],
+  compound:   ['business_attribute', 'dimension'],
+  media:      ['business_attribute'],
+  system:     ['primary_key', 'scope_key', 'audit'],
+};
+
+type DrawerStep = 'family' | 'source' | 'catalog' | 'identity' | 'configure' | 'behavior' | 'governance';
 type FieldSource = 'catalog' | 'local';
 
 const STEP_LABELS: Record<DrawerStep, string> = {
+  family:    'Field Type',
   source:    'Source',
   catalog:   'Attribute',
   identity:  'Identity',
@@ -265,8 +441,10 @@ export default function AddFieldDrawer({
   );
   const [source, setSource]   = useState<FieldSource>('catalog');
   const [step, setStep]       = useState<DrawerStep>(
-    isConstrainMode ? 'behavior' : isEditMode ? 'configure' : 'source',
+    isConstrainMode ? 'behavior' : isEditMode ? 'configure' : 'family',
   );
+  const [selectedFamily, setSelectedFamily] = useState<FieldFamily>('stored');
+  const [selectedSemanticRole, setSelectedSemanticRole] = useState<FieldSemanticRole>('business_attribute');
   const [selectedCatalogEntry, setSelectedCatalogEntry] = useState<AdvancedCatalogAttribute | null>(null);
   const [hoveredCatalogEntry, setHoveredCatalogEntry]   = useState<AdvancedCatalogAttribute | null>(null);
   const [field, setField]     = useState<FieldInstance>(
@@ -290,8 +468,9 @@ export default function AddFieldDrawer({
   const steps = useMemo((): DrawerStep[] => {
     if (isConstrainMode) return ['behavior', 'governance'];
     if (isEditMode)      return ['configure', 'behavior', 'governance'];
-    if (source === 'catalog') return ['source', 'catalog', 'configure', 'behavior', 'governance'];
-    return ['source', 'identity', 'configure', 'behavior', 'governance'];
+    // New field: family is always first, then source (catalog/local)
+    if (source === 'catalog') return ['family', 'source', 'catalog', 'configure', 'behavior', 'governance'];
+    return ['family', 'source', 'identity', 'configure', 'behavior', 'governance'];
   }, [source, isEditMode, isConstrainMode]);
 
   const stepIdx = steps.indexOf(step);
@@ -332,12 +511,57 @@ export default function AddFieldDrawer({
 
   // ── Handlers ───────────────────────────────────────────────
 
+  /** Handle family card selection — sets family + v2 metadata defaults, then moves to source step */
+  const handleFamilySelect = (family: FieldFamily) => {
+    const def = FAMILY_DEFS.find(d => d.value === family)!;
+    const suggestedRoles = FAMILY_SEMANTIC_ROLES[family];
+    const defaultRole = suggestedRoles[0];
+    setSelectedFamily(family);
+    setSelectedSemanticRole(defaultRole);
+    // Apply family defaults to field
+    setField(f => ({
+      ...f,
+      fieldType: def.defaultFieldType,
+      fieldArchetype: def.fieldArchetype,
+      fieldMutabilityMode: def.fieldMutabilityMode,
+      fieldPersistenceMode: def.fieldPersistenceMode,
+      semanticRole: defaultRole,
+      // Adjust editability for system/derived families
+      behaviors: {
+        ...f.behaviors,
+        editability:
+          family === 'system' ? 'system_only' :
+          family === 'external' ? 'integration_only' :
+          (family === 'computed' || family === 'rollup' || family === 'projection') ? 'readonly' :
+          'always',
+      },
+    }));
+    setStep('source');
+  };
+
   const handleSourceSelect = (src: FieldSource) => {
     setSource(src);
     if (src === 'catalog') {
       setStep('catalog');
     } else {
-      setField(makeDefaultField('local', selectedLayer));
+      const def = FAMILY_DEFS.find(d => d.value === selectedFamily)!;
+      const baseField = makeDefaultField('local', selectedLayer);
+      setField({
+        ...baseField,
+        fieldType: def.defaultFieldType,
+        fieldArchetype: def.fieldArchetype,
+        fieldMutabilityMode: def.fieldMutabilityMode,
+        fieldPersistenceMode: def.fieldPersistenceMode,
+        semanticRole: selectedSemanticRole,
+        behaviors: {
+          ...baseField.behaviors,
+          editability:
+            selectedFamily === 'system' ? 'system_only' :
+            selectedFamily === 'external' ? 'integration_only' :
+            (selectedFamily === 'computed' || selectedFamily === 'rollup' || selectedFamily === 'projection') ? 'readonly' :
+            'always',
+        },
+      });
       setFieldIdManuallySet(false);
       setStep('identity');
     }
@@ -530,6 +754,114 @@ export default function AddFieldDrawer({
 
         {/* ── Body ── */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
+
+          {/* ════════════════════════════════════════════
+              STEP: family — choose field family (v2)
+              ════════════════════════════════════════════ */}
+          {step === 'family' && (
+            <div style={{ padding: '28px' }}>
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>What kind of field is this?</div>
+                <div style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.5 }}>
+                  Choose the field's structural role. This sets the storage, mutability, and derivation defaults automatically.
+                </div>
+              </div>
+
+              {/* 2-column grid of family cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                {FAMILY_DEFS.map(def => {
+                  const isSelected = selectedFamily === def.value;
+                  // Icon per family
+                  const Icon =
+                    def.value === 'stored'      ? Database :
+                    def.value === 'reference'   ? Link2 :
+                    def.value === 'value_set'   ? List :
+                    def.value === 'computed'    ? Cpu :
+                    def.value === 'rollup'      ? BarChart2 :
+                    def.value === 'snapshot'    ? Camera :
+                    def.value === 'external'    ? Globe :
+                    def.value === 'projection'  ? Layers :
+                    def.value === 'compound'    ? Grid :
+                    def.value === 'media'       ? BookOpenIcon :
+                    Shield; // system
+
+                  return (
+                    <div key={def.value}
+                      onClick={() => handleFamilySelect(def.value)}
+                      style={{
+                        padding: '16px', borderRadius: '10px', cursor: 'pointer',
+                        border: `2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`,
+                        background: isSelected ? 'hsl(22 100% 51% / 0.07)' : 'var(--bg-secondary)',
+                        transition: 'border-color 0.15s, background 0.15s',
+                        display: 'flex', flexDirection: 'column', gap: '8px',
+                      }}
+                    >
+                      {/* Icon + name row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '34px', height: '34px', borderRadius: '8px', flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: isSelected ? 'var(--accent)' : 'var(--bg)',
+                          border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`,
+                          transition: 'background 0.15s',
+                        }}>
+                          <Icon size={16} style={{ color: isSelected ? '#fff' : 'var(--muted)' }} />
+                        </div>
+                        <span style={{
+                          fontWeight: 700, fontSize: '13px',
+                          color: isSelected ? 'var(--accent)' : 'var(--text)',
+                        }}>
+                          {def.label}
+                        </span>
+                      </div>
+
+                      {/* Description */}
+                      <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0, lineHeight: 1.5 }}>
+                        {def.desc}
+                      </p>
+
+                      {/* Defaults badge */}
+                      <div style={{
+                        fontSize: '10px', color: isSelected ? 'var(--accent)' : 'var(--muted)',
+                        fontWeight: 500, padding: '3px 8px', borderRadius: '4px',
+                        background: isSelected ? 'hsl(22 100% 51% / 0.12)' : 'var(--bg)',
+                        border: `1px solid ${isSelected ? 'hsl(22 100% 51% / 0.3)' : 'var(--border)'}`,
+                        alignSelf: 'flex-start',
+                      }}>
+                        {def.defaults}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Selected family confirmation row */}
+              {selectedFamily && (
+                <div style={{
+                  marginTop: '20px', padding: '12px 16px',
+                  background: 'hsl(22 100% 51% / 0.06)',
+                  border: '1px solid hsl(22 100% 51% / 0.25)',
+                  borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '10px',
+                }}>
+                  <Check size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                  <span style={{ fontSize: '13px', color: 'var(--text)' }}>
+                    <strong style={{ color: 'var(--accent)' }}>
+                      {FAMILY_DEFS.find(d => d.value === selectedFamily)?.label}
+                    </strong>
+                    {' '}selected — click a card above or click{' '}
+                    <strong>Next</strong> to continue.
+                  </span>
+                  <button
+                    className="btn btn-primary"
+                    style={{ marginLeft: 'auto', fontSize: '12px', padding: '6px 16px' }}
+                    onClick={() => handleFamilySelect(selectedFamily)}
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ════════════════════════════════════════════
               STEP: source — choose catalog or local
@@ -811,6 +1143,53 @@ export default function AddFieldDrawer({
                 </div>
               </div>
 
+              {/* Semantic Role — shown for local fields with selected family */}
+              {(() => {
+                const suggestedRoles = FAMILY_SEMANTIC_ROLES[selectedFamily] ?? [];
+                if (suggestedRoles.length === 0) return null;
+                const roleDefs = SEMANTIC_ROLE_DEFS.filter(r => suggestedRoles.includes(r.value));
+                const currentRole = field.semanticRole ?? suggestedRoles[0];
+                return (
+                  <div style={{ marginTop: '16px' }}>
+                    <label className="form-label" style={{ marginBottom: '6px', display: 'block' }}>
+                      Semantic Role
+                      <span style={{ fontWeight: 400, color: 'var(--muted)', marginLeft: '6px' }}>
+                        (what business concept this field represents)
+                      </span>
+                    </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {roleDefs.map(r => {
+                        const isActive = currentRole === r.value;
+                        return (
+                          <button key={r.value} type="button"
+                            title={r.desc}
+                            onClick={() => {
+                              setSelectedSemanticRole(r.value);
+                              setField(f => ({ ...f, semanticRole: r.value }));
+                            }}
+                            style={{
+                              padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 600,
+                              cursor: 'pointer', transition: 'all 0.15s',
+                              border: `1.5px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                              background: isActive ? 'hsl(22 100% 51% / 0.10)' : 'transparent',
+                              color: isActive ? 'var(--accent)' : 'var(--muted)',
+                            }}>
+                            {r.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {/* Description of selected role */}
+                    {(() => {
+                      const desc = SEMANTIC_ROLE_DEFS.find(r => r.value === currentRole)?.desc;
+                      return desc ? (
+                        <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '6px' }}>{desc}</div>
+                      ) : null;
+                    })()}
+                  </div>
+                );
+              })()}
+
               {/* Similar catalog entries warning */}
               {similarCatalogEntries.length > 0 && (
                 <div style={{ marginTop: '16px', padding: '12px 14px', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border)' }}>
@@ -968,6 +1347,18 @@ export default function AddFieldDrawer({
                   <div>Type configuration is locked for inherited fields.</div>
                   <div style={{ fontSize: '11px', marginTop: '4px' }}>Proceed to Behavior to set constraints.</div>
                 </div>
+              )}
+
+              {/* ── Snapshot Policy — snapshot family fields only ── */}
+              {selectedFamily === 'snapshot' && !isConstrainMode && (
+                <>
+                  <SectionDivider label="Snapshot Configuration" />
+                  <SnapshotConfig
+                    policy={field.snapshotPolicy}
+                    onChange={(p: FieldSnapshotPolicy) => setField(f => ({ ...f, snapshotPolicy: p }))}
+                    currentEntityType={entityType}
+                  />
+                </>
               )}
 
               {/* ── Display Format — numeric/date/time types only ── */}
@@ -1218,6 +1609,68 @@ export default function AddFieldDrawer({
                   );
                 })}
               </div>
+
+              {/* ── Query Capabilities (v2) — shown for non-system families ── */}
+              {selectedFamily !== 'system' && (
+                <>
+                  <SectionDivider label="Query Capabilities (v2)" />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                    {([
+                      {
+                        key: 'groupable' as const,
+                        label: 'Groupable',
+                        desc: 'Can be used as a GROUP BY dimension in reports',
+                      },
+                      {
+                        key: 'aggregatable' as const,
+                        label: 'Aggregatable',
+                        desc: 'Can be the target of SUM / AVG / MIN / MAX in report builders',
+                      },
+                      {
+                        key: 'fullTextEligible' as const,
+                        label: 'Full-Text',
+                        desc: 'Indexed for full-text search (e.g. customer notes, descriptions)',
+                      },
+                    ]).map(t => {
+                      const qc = field.queryCapabilities;
+                      const val = qc ? qc[t.key] : (t.key === 'groupable' ? false : t.key === 'aggregatable' ? false : false);
+                      return (
+                        <div key={t.key}
+                          onClick={() => !field.protected && setField(f => ({
+                            ...f,
+                            queryCapabilities: {
+                              searchable:          f.queryCapabilities?.searchable          ?? f.behaviors.searchable,
+                              filterable:          f.queryCapabilities?.filterable          ?? f.behaviors.filterable,
+                              sortable:            f.queryCapabilities?.sortable            ?? f.behaviors.sortable,
+                              groupable:           f.queryCapabilities?.groupable           ?? false,
+                              aggregatable:        f.queryCapabilities?.aggregatable        ?? false,
+                              lookupDisplayEligible: f.queryCapabilities?.lookupDisplayEligible ?? f.behaviors.includeInLookupDisplay,
+                              fullTextEligible:    f.queryCapabilities?.fullTextEligible    ?? false,
+                              capabilitySource:    f.queryCapabilities?.capabilitySource    ?? 'explicit',
+                              [t.key]: !val,
+                            },
+                          }))}
+                          style={{
+                            padding: '12px', borderRadius: '8px', cursor: field.protected ? 'not-allowed' : 'pointer',
+                            border: `2px solid ${val ? 'var(--accent)' : 'var(--border)'}`,
+                            background: val ? 'hsl(22 100% 51% / 0.08)' : 'transparent',
+                            transition: 'all 0.12s', textAlign: 'center',
+                          }}>
+                          <div style={{ marginBottom: '6px' }}>
+                            <Toggle
+                              value={val}
+                              onChange={() => {}}
+                              disabled={field.protected}
+                            />
+                          </div>
+                          <div style={{ fontSize: '12px', fontWeight: val ? 600 : 400, color: val ? 'var(--accent)' : 'var(--text)' }}>{t.label}</div>
+                          <div style={{ fontSize: '10px', color: 'var(--muted)', marginTop: '2px' }}>{t.desc}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           )}
 

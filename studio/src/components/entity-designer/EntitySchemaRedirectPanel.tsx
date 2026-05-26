@@ -3,6 +3,7 @@ import { Database, ArrowRight, Layers, CheckCircle, AlertTriangle, Clock } from 
 import { getEntityDefinition, getCompileReadiness } from '../../data/mockService';
 import { useEntityDesignerStore } from '../../hooks/useEntityDesignerStore';
 import { LAYER_COLORS } from '../../utils/entityDesignerConstants';
+import type { LayerCode } from '../../types';
 
 interface Props {
   artifactKey: string;
@@ -86,11 +87,14 @@ export default function EntitySchemaRedirectPanel({ artifactKey, entityType }: P
       <div style={{ marginBottom: '20px' }}>
         <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '10px' }}>Layer Composition</div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {Object.entries(layerBreakdown).map(([layer, count]) => (
-            <div key={layer} style={{ padding: '6px 12px', borderRadius: '20px', background: (LAYER_COLORS[layer] ?? '#6b7280') + '20', border: `1px solid ${LAYER_COLORS[layer] ?? '#6b7280'}40`, fontSize: '12px', fontWeight: 600, color: LAYER_COLORS[layer] ?? '#6b7280' }}>
+          {Object.entries(layerBreakdown).map(([layer, count]) => {
+            const layerColor = LAYER_COLORS[layer as LayerCode] ?? '#6b7280';
+            return (
+            <div key={layer} style={{ padding: '6px 12px', borderRadius: '20px', background: layerColor + '20', border: `1px solid ${layerColor}40`, fontSize: '12px', fontWeight: 600, color: layerColor }}>
               {layer}: {count} field{count > 1 ? 's' : ''}
             </div>
-          ))}
+          );
+          })}
         </div>
       </div>
 

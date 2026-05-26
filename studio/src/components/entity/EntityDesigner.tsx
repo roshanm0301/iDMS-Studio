@@ -526,7 +526,7 @@ function SchemaTab({ artifactKey, fields: seedFields, scopeRole }: SchemaTabProp
                   {visibleCols.has('protected') && (
                     <td style={{ textAlign: 'center' }}>
                       {isProtected
-                        ? <Lock size={13} style={{ color: 'var(--amber)' }} title="Protected" />
+                        ? <span title="Protected" style={{ display: 'inline-flex' }}><Lock size={13} style={{ color: 'var(--amber)' }} /></span>
                         : <span className="subtle" style={{ fontSize: 12 }}>—</span>}
                     </td>
                   )}

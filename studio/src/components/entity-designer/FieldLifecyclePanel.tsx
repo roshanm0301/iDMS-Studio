@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, XCircle } from 'lucide-react';
 import { useEntityDesignerStore } from '../../hooks/useEntityDesignerStore';
 import type { EntityDefinition, FieldLifecycleState, LifecycleTransitionMeta } from '../../types/entityDesigner';
 import { LIFECYCLE_CONFIG } from '../../utils/entityDesignerConstants';
@@ -12,6 +12,7 @@ const ALLOWED: Record<FieldLifecycleState, FieldLifecycleState[]> = {
   draft:    ['active', 'disabled'],
   active:   ['disabled'],
   disabled: ['active'],
+  deprecated: ['active'],
 };
 
 interface TransitionModalProps {

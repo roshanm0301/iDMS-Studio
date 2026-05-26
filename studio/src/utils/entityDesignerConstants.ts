@@ -18,12 +18,12 @@ export const LAYER_COLORS: Record<LayerCode, string> = {
 
 // ── Layer Colors (chip / badge format) ───────────────────────
 // Used by FieldGrid layer badges and filter buttons
-export const LAYER_COLORS_CHIP: Record<LayerCode, { bg: string; text: string }> = {
-  platform: { bg: 'rgba(124,58,237,0.12)', text: '#7c3aed' },
-  vertical: { bg: 'rgba(37,99,235,0.12)',  text: '#2563eb' },
-  tenant:   { bg: 'rgba(8,145,178,0.12)',  text: '#0891b2' }, // cyan-600
-  node:     { bg: 'rgba(217,119,6,0.12)',  text: '#d97706' },
-  role:     { bg: 'rgba(225,29,72,0.12)',  text: '#e11d48' },
+export const LAYER_COLORS_CHIP: Record<LayerCode, { bg: string; text: string; border: string }> = {
+  platform: { bg: 'rgba(124,58,237,0.12)', text: '#7c3aed', border: 'rgba(124,58,237,0.28)' },
+  vertical: { bg: 'rgba(37,99,235,0.12)',  text: '#2563eb', border: 'rgba(37,99,235,0.28)' },
+  tenant:   { bg: 'rgba(8,145,178,0.12)',  text: '#0891b2', border: 'rgba(8,145,178,0.28)' },
+  node:     { bg: 'rgba(217,119,6,0.12)',  text: '#d97706', border: 'rgba(217,119,6,0.28)' },
+  role:     { bg: 'rgba(225,29,72,0.12)',  text: '#e11d48', border: 'rgba(225,29,72,0.28)' },
 };
 
 // ── Layer Colors (CSS class names) ───────────────────────────
@@ -50,9 +50,11 @@ export const LAYER_LABELS: Record<LayerCode, string> = {
 export const LIFECYCLE_CONFIG: Record<FieldLifecycleState, {
   label: string;
   color: string;
+  bg: string;
   icon: React.ElementType;
 }> = {
-  draft:    { label: 'Draft',    color: '#6b7280', icon: Clock },
-  active:   { label: 'Active',   color: '#10b981', icon: CheckCircle },
-  disabled: { label: 'Disabled', color: '#ef4444', icon: XCircle },
+  draft:      { label: 'Draft',      color: '#6b7280', bg: 'rgba(107,114,128,0.12)', icon: Clock },
+  active:     { label: 'Active',     color: '#10b981', bg: 'rgba(16,185,129,0.12)', icon: CheckCircle },
+  disabled:   { label: 'Disabled',   color: '#ef4444', bg: 'rgba(239,68,68,0.12)', icon: XCircle },
+  deprecated: { label: 'Deprecated', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', icon: Clock },
 };

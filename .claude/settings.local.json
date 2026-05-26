@@ -34,7 +34,9 @@
       "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/utils/storageTypeComputer.ts','utf8'\\); console.log\\(c.includes\\('computeStorageType'\\) ? 'OK' : 'MISSING'\\)\")",
       "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/utils/reverseRelationComputer.ts','utf8'\\); console.log\\(c.includes\\('computeReverseRelations'\\) ? 'OK' : 'MISSING'\\)\")",
       "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/components/entity-designer/ViewsBuilder.tsx','utf8'\\); console.log\\(c.includes\\('ViewsBuilder'\\) ? 'OK' : 'MISSING'\\)\")",
-      "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/components/entity-designer/ActionsPanel.tsx','utf8'\\); console.log\\(c.includes\\('ActionsPanel'\\) ? 'OK' : 'MISSING'\\)\")"
+      "Bash(node -e \"const f=require\\('fs'\\); const c=f.readFileSync\\('src/components/entity-designer/ActionsPanel.tsx','utf8'\\); console.log\\(c.includes\\('ActionsPanel'\\) ? 'OK' : 'MISSING'\\)\")",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(powershell -Command \"\\(Get-Content 'C:\\\\Users\\\\roshanm\\\\Downloads\\\\iDMS Studio\\\\studio\\\\src\\\\data\\\\entityDesignerData.ts'\\).Count\")"
     ]
   }
 }
