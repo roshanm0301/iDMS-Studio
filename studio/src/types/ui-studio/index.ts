@@ -118,6 +118,8 @@ export interface ViewArtifact extends ViewSummary {
   contextContract?: ViewContextContract
   transactionConfig?: TransactionConfig
   scaffoldApplied?: boolean
+  fieldChangeEvents?: FieldChangeEvent[]
+  gridCellEvents?: GridCellEvent[]
 }
 
 export interface CreateViewInput {
@@ -224,6 +226,50 @@ export interface TransactionConfig {
   totalFieldIds: string[]
   allowAddRow?: boolean
   allowDeleteRow?: boolean
+}
+
+// M10 — Lookup config stored inside ComponentDefinition.config
+export interface LookupConfig {
+  targetEntityId: string
+  displayFieldId: string
+  valueFieldId: string
+  pickerColumnIds: string[]
+  searchFieldIds: string[]
+  defaultFilter?: string
+}
+
+// M13 — Field change events
+export type FieldChangeActionType = 'clear' | 'set' | 'refresh_lookup' | 'recalculate' | 'warn' | 'confirm' | 'revalidate'
+
+export interface FieldChangeAction {
+  type: FieldChangeActionType
+  targetFieldId?: string
+  value?: unknown
+  message?: string
+}
+
+export interface FieldChangeEvent {
+  id: string
+  triggerFieldId: string
+  actions: FieldChangeAction[]
+}
+
+// M14 — Grid cell change events
+export type GridCellActionType = 'set_cell_value' | 'recalculate_row' | 'refresh_lookup' | 'warn' | 'confirm' | 'flag_approval'
+
+export interface GridCellAction {
+  type: GridCellActionType
+  targetColumnFieldId?: string
+  formula?: string
+  value?: unknown
+  message?: string
+  threshold?: number
+}
+
+export interface GridCellEvent {
+  id: string
+  triggerColumnFieldId: string
+  actions: GridCellAction[]
 }
 
 // Repository interface — backend-agnostic contract

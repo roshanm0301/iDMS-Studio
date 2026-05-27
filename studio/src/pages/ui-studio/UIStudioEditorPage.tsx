@@ -12,9 +12,14 @@ import { FormFieldConfigPanel } from '../../components/ui-studio/palette/FormFie
 import { LineGridConfigPanel } from '../../components/ui-studio/transaction/LineGridConfigPanel'
 import { SmartCRUDPanel } from '../../components/ui-studio/smart-crud/SmartCRUDPanel'
 import { FieldPicker } from '../../components/ui-studio/common/FieldPicker'
+import { LookupConfigPanel } from '../../components/ui-studio/inspector/LookupConfigPanel'
+import { DataSourceRegistryPanel } from '../../components/ui-studio/data-binding/DataSourceRegistryPanel'
+import { BehaviorRuleListPanel } from '../../components/ui-studio/behavior/BehaviorRuleListPanel'
+import { FieldChangeEventListPanel } from '../../components/ui-studio/behavior/FieldChangeEventListPanel'
+import { GridCellEventListPanel } from '../../components/ui-studio/behavior/GridCellEventListPanel'
 import type { ViewSurfaceType, ViewContextContract, ViewArtifact } from '../../types/ui-studio/index'
 
-type LeftTab = 'surface' | 'tools'
+type LeftTab = 'surface' | 'tools' | 'behavior'
 
 export function UIStudioEditorPage() {
   const { viewId } = useParams<{ viewId: string }>()
@@ -135,6 +140,18 @@ export function UIStudioEditorPage() {
     }
   }
 
+  // Find the first lookup_widget or entity_ref component for inspector
+  const lookupComponent = artifact.components.find(
+    c => c.componentType === 'lookup_widget' || c.componentType === 'entity_ref'
+  )
+
+  const LEFT_TABS: LeftTab[] = ['surface', 'tools', 'behavior']
+  const LEFT_TAB_LABELS: Record<LeftTab, string> = {
+    surface: 'Surface',
+    tools: 'Tools',
+    behavior: 'Behavior',
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Toolbar */}
@@ -159,7 +176,7 @@ export function UIStudioEditorPage() {
         }}>
           {/* Left panel tab bar */}
           <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', flexShrink: 0, background: 'var(--bg-elev)' }}>
-            {(['surface', 'tools'] as LeftTab[]).map(tab => (
+            {LEFT_TABS.map(tab => (
               <button
                 key={tab}
                 onClick={() => setLeftTab(tab)}
@@ -171,7 +188,7 @@ export function UIStudioEditorPage() {
                   borderBottom: leftTab === tab ? '2px solid var(--accent)' : '2px solid transparent',
                 }}
               >
-                {tab === 'surface' ? 'Surface' : 'Tools'}
+                {LEFT_TAB_LABELS[tab]}
               </button>
             ))}
           </div>
@@ -189,10 +206,22 @@ export function UIStudioEditorPage() {
               </>
             )}
             {leftTab === 'tools' && (
-              <SmartCRUDPanel
-                artifact={artifact}
-                onApplyScaffold={patch => updateArtifact(patch)}
-              />
+              <>
+                <SmartCRUDPanel
+                  artifact={artifact}
+                  onApplyScaffold={patch => updateArtifact(patch)}
+                />
+                <DataSourceRegistryPanel artifact={artifact} onChange={handleCanvasUpdate} />
+              </>
+            )}
+            {leftTab === 'behavior' && (
+              <>
+                <BehaviorRuleListPanel artifact={artifact} onChange={handleCanvasUpdate} />
+                <FieldChangeEventListPanel artifact={artifact} onChange={handleCanvasUpdate} />
+                {artifact.surfaceType === 'transaction_workspace' && (
+                  <GridCellEventListPanel artifact={artifact} onChange={handleCanvasUpdate} />
+                )}
+              </>
             )}
           </div>
         </div>
@@ -214,6 +243,24 @@ export function UIStudioEditorPage() {
             <span className="panel-title">Inspector</span>
           </div>
           <div className="panel-body" style={{ padding: '16px', overflowY: 'auto', flex: 1 }}>
+            {lookupComponent && (
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontWeight: 600, fontSize: '12px', marginBottom: '8px', color: 'var(--text)' }}>
+                  Lookup Config
+                </div>
+                <LookupConfigPanel
+                  component={lookupComponent}
+                  entityId={artifact.primaryEntityId}
+                  onChange={config => {
+                    handleCanvasUpdate({
+                      components: artifact.components.map(c =>
+                        c.id === lookupComponent.id ? { ...c, config: { ...c.config, ...config } } : c
+                      ),
+                    })
+                  }}
+                />
+              </div>
+            )}
             <FieldPicker
               entityId={artifact.primaryEntityId}
               selectedFieldIds={[]}
