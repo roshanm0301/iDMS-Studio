@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { AlertCircle } from 'lucide-react'
 import { useViewQuery, useSaveViewMutation } from '../../hooks/ui-studio/useUIStudioViewsQuery'
@@ -17,7 +17,15 @@ import { DataSourceRegistryPanel } from '../../components/ui-studio/data-binding
 import { BehaviorRuleListPanel } from '../../components/ui-studio/behavior/BehaviorRuleListPanel'
 import { FieldChangeEventListPanel } from '../../components/ui-studio/behavior/FieldChangeEventListPanel'
 import { GridCellEventListPanel } from '../../components/ui-studio/behavior/GridCellEventListPanel'
-import type { ViewSurfaceType, ViewContextContract, ViewArtifact } from '../../types/ui-studio/index'
+import { ActionRegistryPanel } from '../../components/ui-studio/palette/ActionRegistryPanel'
+import { WorkflowStateConfigurator } from '../../components/ui-studio/preview/WorkflowStateConfigurator'
+import { VersionHistoryPanel } from '../../components/ui-studio/shell/VersionHistoryPanel'
+import { PublishButton } from '../../components/ui-studio/shell/PublishButton'
+import { ValidationPanel } from '../../components/ui-studio/validation/ValidationPanel'
+import { PreviewContextPanel } from '../../components/ui-studio/preview/PreviewContextPanel'
+import { validateArtifact } from '../../lib/ui-studio/validationEngine'
+import { MOCK_ENTITIES } from '../../mocks/ui-studio/mockEntityMetadata'
+import type { ViewSurfaceType, ViewContextContract, ViewArtifact, WorkflowConfig } from '../../types/ui-studio/index'
 
 type LeftTab = 'surface' | 'tools' | 'behavior'
 
@@ -47,6 +55,12 @@ export function UIStudioEditorPage() {
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
+
+  // Validation summary
+  const validationSummary = useMemo(
+    () => (artifact ? validateArtifact(artifact) : { errors: [], warnings: [], suggestions: [] }),
+    [artifact]
+  )
 
   async function handleSave() {
     if (!artifact || !viewId) return
@@ -145,6 +159,12 @@ export function UIStudioEditorPage() {
     c => c.componentType === 'lookup_widget' || c.componentType === 'entity_ref'
   )
 
+  // Check if primary entity supports workflow
+  const primaryEntity = artifact.primaryEntityId
+    ? MOCK_ENTITIES.find(e => e.id === artifact.primaryEntityId)
+    : undefined
+  const supportsWorkflow = primaryEntity?.capabilityFlags.supportsWorkflow ?? false
+
   const LEFT_TABS: LeftTab[] = ['surface', 'tools', 'behavior']
   const LEFT_TAB_LABELS: Record<LeftTab, string> = {
     surface: 'Surface',
@@ -212,6 +232,7 @@ export function UIStudioEditorPage() {
                   onApplyScaffold={patch => updateArtifact(patch)}
                 />
                 <DataSourceRegistryPanel artifact={artifact} onChange={handleCanvasUpdate} />
+                <ActionRegistryPanel artifact={artifact} onChange={handleCanvasUpdate} />
               </>
             )}
             {leftTab === 'behavior' && (
@@ -220,6 +241,12 @@ export function UIStudioEditorPage() {
                 <FieldChangeEventListPanel artifact={artifact} onChange={handleCanvasUpdate} />
                 {artifact.surfaceType === 'transaction_workspace' && (
                   <GridCellEventListPanel artifact={artifact} onChange={handleCanvasUpdate} />
+                )}
+                {supportsWorkflow && (
+                  <WorkflowStateConfigurator
+                    config={artifact.workflowConfig}
+                    onChange={(config: WorkflowConfig) => handleCanvasUpdate({ workflowConfig: config })}
+                  />
                 )}
               </>
             )}
@@ -242,9 +269,15 @@ export function UIStudioEditorPage() {
           <div className="panel-header">
             <span className="panel-title">Inspector</span>
           </div>
-          <div className="panel-body" style={{ padding: '16px', overflowY: 'auto', flex: 1 }}>
+          <div className="panel-body" style={{ padding: '16px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Validation */}
+            <ValidationPanel summary={validationSummary} />
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: 0 }} />
+
+            {/* Lookup Config (if applicable) */}
             {lookupComponent && (
-              <div style={{ marginBottom: '16px' }}>
+              <div>
                 <div style={{ fontWeight: 600, fontSize: '12px', marginBottom: '8px', color: 'var(--text)' }}>
                   Lookup Config
                 </div>
@@ -261,12 +294,29 @@ export function UIStudioEditorPage() {
                 />
               </div>
             )}
+
+            {/* Available Fields */}
             <FieldPicker
               entityId={artifact.primaryEntityId}
               selectedFieldIds={[]}
               onToggle={() => undefined}
               label="Available Fields"
             />
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: 0 }} />
+
+            {/* Publish + Version History */}
+            <PublishButton
+              artifact={artifact}
+              viewId={viewId!}
+              onPublished={() => { /* clearDirty and refetch handled by mutation */ }}
+            />
+            <VersionHistoryPanel viewId={viewId!} />
+
+            <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: 0 }} />
+
+            {/* Preview Context */}
+            <PreviewContextPanel />
           </div>
         </div>
       </div>

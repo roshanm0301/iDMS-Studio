@@ -120,6 +120,7 @@ export interface ViewArtifact extends ViewSummary {
   scaffoldApplied?: boolean
   fieldChangeEvents?: FieldChangeEvent[]
   gridCellEvents?: GridCellEvent[]
+  workflowConfig?: WorkflowConfig
 }
 
 export interface CreateViewInput {
@@ -270,6 +271,28 @@ export interface GridCellEvent {
   id: string
   triggerColumnFieldId: string
   actions: GridCellAction[]
+}
+
+// M16 — Workflow config
+export interface WorkflowStateConfig {
+  id: string
+  label: string
+  color: string
+  availableActionIds: string[]
+  requiresComment: boolean
+}
+
+export interface WorkflowConfig {
+  states: WorkflowStateConfig[]
+  initialStateId: string
+}
+
+// M18 — Preview context
+export interface PreviewContext {
+  role: 'Admin' | 'Sales' | 'Finance' | 'Viewer'
+  device: 'desktop' | 'tablet' | 'mobile'
+  workflowState: string
+  sampleRecordId: string
 }
 
 // Repository interface — backend-agnostic contract
