@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:deploy": "vite build",
     "typecheck": "tsc -b",
     "typecheck:ui-studio": "tsc -p tsconfig.ui-studio.json --noEmit",
     "lint": "eslint .",

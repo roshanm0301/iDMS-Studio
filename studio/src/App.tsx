@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AppShell from './components/shell/AppShell';
 import StudioHomePage from './pages/StudioHomePage';
@@ -41,7 +41,7 @@ const PageLoader = () => (
 function App() {
   return (
     <QueryClientProvider client={qc}>
-      <BrowserRouter>
+      <HashRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/admin/studio" replace />} />
           <Route path="/admin/studio" element={<AppShell />}>
@@ -93,7 +93,7 @@ function App() {
             } />
           </Route>
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </QueryClientProvider>
   );
 }
