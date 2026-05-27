@@ -159,6 +159,7 @@ export interface RelationshipDefinition {
     targetKeyFieldIds?: string[];
     compositeMatchMode?: 'all_required' | 'any_match';
     externalProviderKey?: string;  // for external/provider archetypes
+    queryBindingId?: string;       // for derived_query_key strategy
   };
 
   // ── Integrity / Enforcement ──────────────────────────────────────────────────

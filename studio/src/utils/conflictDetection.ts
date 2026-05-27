@@ -158,10 +158,10 @@ export function detectAllConflicts(entity: EntityDefinition): {
   }
 
   // ENT.VAL.110 — lookup-eligible entity should define a display field
-  if (entity.lookupEligible && !entity.displayFieldId && !entity.lookupDisplayTemplate) {
+  if (entity.lookupEligible && !entity.displayNameFieldId && !entity.lookupDisplayTemplate) {
     compileErrors.push({
       severity: 'warning',
-      message: 'Lookup-eligible entity should define a display field (displayFieldId) so referencing dropdowns know what to show.',
+      message: 'Lookup-eligible entity should define a display field (displayNameFieldId) so referencing dropdowns know what to show.',
     });
   }
 

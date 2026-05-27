@@ -23,7 +23,7 @@ import type {
   DeterminismType,
   ValidationFamilyGroup,
 } from '../../types/validationDesigner';
-import type { LayerCode } from '../../types/entityDesigner';
+import type { LayerCode } from '../../types/index';
 
 // ── Constants ─────────────────────────────────────────────────
 
@@ -397,7 +397,7 @@ export default function ValidationRuleInspector({
   }, []);
 
   const updateNested = useCallback(<P extends keyof ValidationRuleDefinition>(
-    parent: P, patch: Partial<ValidationRuleDefinition[P] extends object ? ValidationRuleDefinition[P] : never>,
+    parent: P, patch: Partial<Extract<ValidationRuleDefinition[P], object>>,
   ) => {
     setDraft(d => {
       if (!d) return d;

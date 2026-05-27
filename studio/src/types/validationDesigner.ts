@@ -1,7 +1,7 @@
 // ============================================================
 // iDMS Admin Studio — Validation Rule Definition v2 Types
 // ============================================================
-import type { LayerCode } from './entityDesigner';
+import type { LayerCode } from './index';
 
 // ── Dimension 1 — Validation Family (19 values) ──────────────
 export type ValidationFamily =
