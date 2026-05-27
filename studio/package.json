@@ -12,7 +12,8 @@
     "lint:ui-studio": "eslint \"src/**/ui-studio/**/*.{ts,tsx}\"",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dev:sync": "bash scripts/dev-sync.sh"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
