@@ -158,7 +158,7 @@ export function LayoutBuilderPanel({ layout, onChange }: LayoutBuilderPanelProps
 
       {layout.containers.length === 0 ? (
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '16px 0', textAlign: 'center' }}>
-          No containers. Add a section to get started.
+          No containers. Use the buttons above to get started.
         </div>
       ) : (
         <div>

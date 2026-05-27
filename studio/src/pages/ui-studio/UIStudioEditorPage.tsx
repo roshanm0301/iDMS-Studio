@@ -5,8 +5,13 @@ import { useViewQuery, useSaveViewMutation } from '../../hooks/ui-studio/useUISt
 import { useUIStudioEditorStore } from '../../hooks/ui-studio/useUIStudioEditorStore'
 import { EditorToolbar } from '../../components/ui-studio/builder/EditorToolbar'
 import { EditorCanvas } from '../../components/ui-studio/builder/EditorCanvas'
+import { LayoutBuilderPanel } from '../../components/ui-studio/builder/LayoutBuilderPanel'
 import { SurfaceConfigPanel } from '../../components/ui-studio/palette/SurfaceConfigPanel'
+import { GridConfigurationPanel } from '../../components/ui-studio/palette/GridConfigurationPanel'
+import { FormFieldConfigPanel } from '../../components/ui-studio/palette/FormFieldConfigPanel'
+import { LineGridConfigPanel } from '../../components/ui-studio/transaction/LineGridConfigPanel'
 import { SmartCRUDPanel } from '../../components/ui-studio/smart-crud/SmartCRUDPanel'
+import { FieldPicker } from '../../components/ui-studio/common/FieldPicker'
 import type { ViewSurfaceType, ViewContextContract, ViewArtifact } from '../../types/ui-studio/index'
 
 type LeftTab = 'surface' | 'tools'
@@ -96,6 +101,40 @@ export function UIStudioEditorPage() {
 
   if (!artifact) return null
 
+  function renderSurfacePanel() {
+    if (!artifact) return null
+    switch (artifact.surfaceType) {
+      case 'list':
+        return (
+          <GridConfigurationPanel
+            artifact={artifact}
+            onChange={handleCanvasUpdate}
+          />
+        )
+      case 'create_edit':
+        return (
+          <FormFieldConfigPanel
+            artifact={artifact}
+            onChange={handleCanvasUpdate}
+          />
+        )
+      case 'transaction_workspace':
+        return (
+          <LineGridConfigPanel
+            artifact={artifact}
+            onChange={handleCanvasUpdate}
+          />
+        )
+      default:
+        return (
+          <LayoutBuilderPanel
+            layout={artifact.layout}
+            onChange={layout => handleCanvasUpdate({ layout })}
+          />
+        )
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Toolbar */}
@@ -140,11 +179,14 @@ export function UIStudioEditorPage() {
           {/* Left panel content */}
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {leftTab === 'surface' && (
-              <SurfaceConfigPanel
-                artifact={artifact}
-                onChangeSurface={handleChangeSurface}
-                onUpdateContextContract={handleUpdateContextContract}
-              />
+              <>
+                <SurfaceConfigPanel
+                  artifact={artifact}
+                  onChangeSurface={handleChangeSurface}
+                  onUpdateContextContract={handleUpdateContextContract}
+                />
+                {renderSurfacePanel()}
+              </>
             )}
             {leftTab === 'tools' && (
               <SmartCRUDPanel
@@ -160,7 +202,7 @@ export function UIStudioEditorPage() {
           <EditorCanvas artifact={artifact} onUpdate={handleCanvasUpdate} />
         </div>
 
-        {/* Right panel — inspector (placeholder for M5+) */}
+        {/* Right panel — inspector */}
         <div style={{
           width: '256px', flexShrink: 0,
           borderLeft: '1px solid var(--border)',
@@ -171,33 +213,13 @@ export function UIStudioEditorPage() {
           <div className="panel-header">
             <span className="panel-title">Inspector</span>
           </div>
-          <div className="panel-body" style={{ padding: '16px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>Surface</div>
-                <div>{artifact.surfaceType.replace(/_/g, ' ')}</div>
-              </div>
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>Entity</div>
-                <div>{artifact.primaryEntityId ?? '—'}</div>
-              </div>
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>Components</div>
-                <div>{artifact.components.length}</div>
-              </div>
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontWeight: 600, color: 'var(--text)', marginBottom: '2px' }}>Version</div>
-                <div>v{artifact.version}</div>
-              </div>
-              {artifact.scaffoldApplied && (
-                <div style={{ marginTop: '12px', padding: '8px', background: 'var(--green-soft)', borderRadius: 'var(--radius-sm)', color: 'var(--green)', fontSize: '11.5px' }}>
-                  Smart defaults applied
-                </div>
-              )}
-            </div>
-            <div style={{ marginTop: '20px', fontSize: '11.5px', color: 'var(--text-subtle)' }}>
-              Field and component inspector available in M5.
-            </div>
+          <div className="panel-body" style={{ padding: '16px', overflowY: 'auto', flex: 1 }}>
+            <FieldPicker
+              entityId={artifact.primaryEntityId}
+              selectedFieldIds={[]}
+              onToggle={() => undefined}
+              label="Available Fields"
+            />
           </div>
         </div>
       </div>

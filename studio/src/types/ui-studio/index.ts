@@ -222,6 +222,8 @@ export interface TransactionConfig {
   lineColumns: TransactionLineColumn[]
   totalsEnabled: boolean
   totalFieldIds: string[]
+  allowAddRow?: boolean
+  allowDeleteRow?: boolean
 }
 
 // Repository interface — backend-agnostic contract
