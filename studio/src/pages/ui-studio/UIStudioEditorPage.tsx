@@ -72,8 +72,17 @@ export function UIStudioEditorPage() {
     }
   }
 
-  function handlePreview() {
-    if (viewId) navigate(`/admin/ui-studio/preview/${viewId}`)
+  async function handlePreview() {
+    if (!viewId) return
+    if (isDirty && artifact) {
+      try {
+        await saveMutation.mutateAsync({ viewId, artifact })
+        clearDirty()
+      } catch {
+        // Save failed — proceed to preview with last saved state
+      }
+    }
+    navigate(`/admin/ui-studio/preview/${viewId}`)
   }
 
   function handleChangeSurface(newType: ViewSurfaceType) {

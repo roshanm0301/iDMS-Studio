@@ -37,7 +37,7 @@ const withColumns: ViewArtifact = {
 describe('LineGridConfigPanel (M9)', () => {
   it('shows message when no line entity', () => {
     render(<LineGridConfigPanel artifact={baseArtifact} onChange={vi.fn()} />)
-    expect(screen.getByText(/Select a Line Entity first/i)).toBeInTheDocument()
+    expect(screen.getByText(/No line entity selected/i)).toBeInTheDocument()
   })
   it('shows empty state when line entity set but no columns', () => {
     render(<LineGridConfigPanel artifact={withLineEntity} onChange={vi.fn()} />)

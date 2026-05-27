@@ -150,7 +150,7 @@ export function LayoutBuilderPanel({ layout, onChange }: LayoutBuilderPanelProps
               onClick={() => addContainer(type)}
               style={{ display: 'flex', alignItems: 'center', gap: '2px', fontSize: '10px' }}
             >
-              <Plus size={11} />{type}
+              <Plus size={11} />Add {type}
             </button>
           ))}
         </div>

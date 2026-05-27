@@ -36,6 +36,14 @@ export function ListSurfaceRenderer({ artifact, ruleMap }: ListSurfaceRendererPr
     return fieldId
   }
 
+  if (columns.length === 0) {
+    return (
+      <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12.5px' }}>
+        No columns configured. Open the editor and add columns from the Surface tab.
+      </div>
+    )
+  }
+
   return (
     <div>
       {toolbarActions.length > 0 && (

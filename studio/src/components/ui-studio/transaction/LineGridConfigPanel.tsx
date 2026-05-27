@@ -22,7 +22,7 @@ export function LineGridConfigPanel({ artifact, onChange }: LineGridConfigPanelP
     return (
       <div style={{ padding: '12px', borderTop: '1px solid var(--border)' }}>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '8px 0' }}>
-          Select a Line Entity first to configure line grid columns.
+          No line entity selected. Use the <strong>Line Grid</strong> section in the canvas to pick the related line entity, then return here to configure columns.
         </div>
       </div>
     )
