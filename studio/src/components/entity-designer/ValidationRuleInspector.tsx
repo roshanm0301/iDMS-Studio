@@ -27,6 +27,7 @@ import type { LayerCode } from '../../types/index';
 
 // ── Constants ─────────────────────────────────────────────────
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const SEVERITY_COLORS: Record<ValidationSeverity, { bg: string; color: string }> = {
   error_blocking:      { bg: '#fee2e2', color: '#991b1b' },
   warning_acknowledge: { bg: '#fef3c7', color: '#92400e' },

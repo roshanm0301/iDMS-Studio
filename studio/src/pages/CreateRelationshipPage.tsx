@@ -651,7 +651,7 @@ export default function CreateRelationshipPage() {
         );
 
       // ── Step 4: Integrity ────────────────────────────────────────────────
-      case 4:
+      case 4: {
         const lockedIntegrity = isDerived || isExternal;
         return (
           <div>
@@ -706,9 +706,10 @@ export default function CreateRelationshipPage() {
             )}
           </div>
         );
+      }
 
       // ── Step 5: Lifecycle Coupling ───────────────────────────────────────
-      case 5:
+      case 5: {
         const isComposition = archetype === 'composition_owned_child';
         return (
           <div>
@@ -771,6 +772,7 @@ export default function CreateRelationshipPage() {
             </div>
           </div>
         );
+      }
 
       // ── Step 6: Scope ────────────────────────────────────────────────────
       case 6:
@@ -792,7 +794,7 @@ export default function CreateRelationshipPage() {
         );
 
       // ── Step 7: Capabilities ─────────────────────────────────────────────
-      case 7:
+      case 7: {
         const isReadOnly = isDerived || linkMutMode === 'derived_read_only' || linkMutMode === 'link_read_only';
         return (
           <div>
@@ -827,6 +829,7 @@ export default function CreateRelationshipPage() {
             </div>
           </div>
         );
+      }
 
       // ── Step 8: Temporal ─────────────────────────────────────────────────
       case 8:
@@ -906,7 +909,7 @@ export default function CreateRelationshipPage() {
         );
 
       // ── Step 9: Review & Create ──────────────────────────────────────────
-      case 9:
+      case 9: {
         const archetypeCfg = archetype ? ARCHETYPE_CONFIG[archetype] : null;
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1008,6 +1011,7 @@ export default function CreateRelationshipPage() {
             </button>
           </div>
         );
+      }
 
       default:
         return null;
