@@ -149,7 +149,7 @@ export default function ValidationRulesPage() {
               <tr
                 key={rule.id}
                 style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                onClick={() => navigate(`/admin/studio/rule-engine/validation/${rule.id}`)}
+                onClick={() => navigate(`/admin/studio/rule-engine/validations/${rule.id}/edit`)}
               >
                 <td style={{ padding: '10px 12px' }}>
                   <div style={{ fontWeight: 500 }}>{rule.messageTemplate}</div>
@@ -178,7 +178,7 @@ export default function ValidationRulesPage() {
                 </td>
                 <td style={{ padding: '10px 12px', fontSize: 11 }}>{rule.entityType}</td>
                 <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                  {rule.nonOverridable && <Shield size={12} color="#991B1B" title="Non-overridable" />}
+                  {rule.nonOverridable && <Shield size={12} color="#991B1B" aria-label="Non-overridable" />}
                 </td>
               </tr>
             );

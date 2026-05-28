@@ -90,6 +90,7 @@ export default function CreateApprovalPolicyPage() {
 
   const onSubmit = (data: FormValues) => {
     const policy: ApprovalPolicy = {
+      // eslint-disable-next-line react-hooks/purity
       id: existing?.id || `ap-new-${Date.now()}`,
       code: data.code,
       name: data.name,

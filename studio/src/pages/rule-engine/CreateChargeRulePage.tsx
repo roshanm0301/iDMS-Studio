@@ -15,7 +15,6 @@ import type { ChargeCategory, CalculationMethod, TaxTiming, ConflictStrategy, Ch
 import { saveChargeRule, getChargeRuleById, getChargeMasters } from '../../data/chargeService';
 
 interface FormValues {
-  name: string;
   chargeMasterId: string;
   calculationMethod: CalculationMethod;
   fixedAmount: number;
@@ -37,7 +36,6 @@ export default function CreateChargeRulePage() {
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: existing ? {
-      name: existing.name,
       chargeMasterId: existing.chargeMasterId,
       calculationMethod: existing.calculationMethod,
       fixedAmount: existing.fixedAmount || 0,
@@ -50,7 +48,7 @@ export default function CreateChargeRulePage() {
       effectiveFrom: existing.effectiveFrom || '',
       effectiveTo: existing.effectiveTo || '',
     } : {
-      name: '', chargeMasterId: masters[0]?.id || '', calculationMethod: 'percentage',
+      chargeMasterId: masters[0]?.id || '', calculationMethod: 'percentage',
       fixedAmount: 0, percentage: 0, formulaExpression: '',
       taxTiming: 'pre_tax', conflictStrategy: 'first_match', scope: 'line',
       priority: 10, effectiveFrom: '', effectiveTo: '',
@@ -58,14 +56,14 @@ export default function CreateChargeRulePage() {
   });
 
   const method = watch('calculationMethod');
-  const [slabs, setSlabs] = useState<SlabTier[]>(existing?.slabTiers || []);
+  const [slabs, setSlabs] = useState<SlabTier[]>(existing?.slabs || []);
   const [saved, setSaved] = useState(false);
 
-  const addSlab = () => setSlabs([...slabs, { from: 0, to: 0, value: 0, valueType: 'percentage' }]);
+  const addSlab = () => setSlabs([...slabs, { fromValue: 0, toValue: null, value: 0, calculationMethod: 'percentage' }]);
   const removeSlab = (i: number) => setSlabs(slabs.filter((_, j) => j !== i));
-  const updateSlab = (i: number, field: keyof SlabTier, val: number | string) => {
+  const updateSlab = (i: number, field: keyof SlabTier, val: number | string | null) => {
     const arr = [...slabs];
-    (arr[i] as any)[field] = field === 'valueType' ? val : Number(val);
+    (arr[i] as any)[field] = field === 'calculationMethod' ? val : (val === '' || val === null ? null : Number(val));
     setSlabs(arr);
   };
 
@@ -75,16 +73,21 @@ export default function CreateChargeRulePage() {
       ruleVersionId: existing?.ruleVersionId || `rv-new-${Date.now()}`,
       familyId: existing?.familyId || `rf-new-${Date.now()}`,
       chargeMasterId: data.chargeMasterId,
-      name: data.name,
+      entityType: existing?.entityType || 'generic',
+      scope: data.scope,
       calculationMethod: data.calculationMethod,
       fixedAmount: data.calculationMethod === 'fixed_amount' ? data.fixedAmount : undefined,
       percentage: data.calculationMethod === 'percentage' ? data.percentage : undefined,
       formulaExpression: data.calculationMethod === 'formula' ? data.formulaExpression : undefined,
-      slabTiers: data.calculationMethod === 'slab_tier' ? slabs : undefined,
+      slabs: data.calculationMethod === 'slab_tier' ? slabs : undefined,
       taxTiming: data.taxTiming,
+      taxability: existing?.taxability || 'taxable',
       conflictStrategy: data.conflictStrategy,
-      scope: data.scope,
       priority: data.priority,
+      sequence: existing?.sequence ?? 1,
+      deviationPolicy: existing?.deviationPolicy || { editable: false, deviationType: 'none', requireReason: false },
+      precision: existing?.precision ?? 2,
+      roundingMode: existing?.roundingMode || 'round_half_up',
       effectiveFrom: data.effectiveFrom || undefined,
       effectiveTo: data.effectiveTo || undefined,
       createdBy: 'admin',
@@ -104,19 +107,12 @@ export default function CreateChargeRulePage() {
       {saved && <div style={{ padding: 10, borderRadius: 6, backgroundColor: '#D1FAE5', color: '#065F46', fontSize: 12, marginBottom: 16 }}>Rule saved!</div>}
 
       <form onSubmit={handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Name + Master */}
-        <div style={{ display: 'flex', gap: 12 }}>
-          <div style={{ flex: 2 }}>
-            <label style={{ fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 4 }}>Rule Name *</label>
-            <input {...register('name', { required: 'Required' })} style={{ width: '100%', fontSize: 12, padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border)' }} />
-            {errors.name && <p style={{ color: '#EF4444', fontSize: 11, margin: '4px 0 0' }}>{errors.name.message}</p>}
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 4 }}>Charge Master *</label>
-            <select {...register('chargeMasterId', { required: true })} style={{ width: '100%', fontSize: 12, padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
-              {masters.map(m => <option key={m.id} value={m.id}>{m.displayName}</option>)}
-            </select>
-          </div>
+        {/* Charge Master */}
+        <div>
+          <label style={{ fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 4 }}>Charge Master *</label>
+          <select {...register('chargeMasterId', { required: true })} style={{ width: '100%', fontSize: 12, padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border)' }}>
+            {masters.map(m => <option key={m.id} value={m.id}>{m.displayName}</option>)}
+          </select>
         </div>
 
         {/* Method + Scope + Priority */}
@@ -173,13 +169,13 @@ export default function CreateChargeRulePage() {
               <tbody>
                 {slabs.map((s, i) => (
                   <tr key={i}>
-                    <td style={{ padding: 2 }}><input type="number" value={s.from} onChange={e => updateSlab(i, 'from', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
-                    <td style={{ padding: 2 }}><input type="number" value={s.to} onChange={e => updateSlab(i, 'to', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
+                    <td style={{ padding: 2 }}><input type="number" value={s.fromValue} onChange={e => updateSlab(i, 'fromValue', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
+                    <td style={{ padding: 2 }}><input type="number" value={s.toValue ?? ''} onChange={e => updateSlab(i, 'toValue', e.target.value === '' ? null : e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
                     <td style={{ padding: 2 }}><input type="number" step="0.01" value={s.value} onChange={e => updateSlab(i, 'value', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
                     <td style={{ padding: 2 }}>
-                      <select value={s.valueType} onChange={e => updateSlab(i, 'valueType', e.target.value)} style={{ fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }}>
+                      <select value={s.calculationMethod} onChange={e => updateSlab(i, 'calculationMethod', e.target.value)} style={{ fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }}>
                         <option value="percentage">%</option>
-                        <option value="fixed">Fixed</option>
+                        <option value="fixed_amount">Fixed</option>
                       </select>
                     </td>
                     <td style={{ padding: 2 }}><button type="button" onClick={() => removeSlab(i)} style={{ border: 'none', cursor: 'pointer', background: 'none' }}><Trash2 size={12} color="#EF4444" /></button></td>

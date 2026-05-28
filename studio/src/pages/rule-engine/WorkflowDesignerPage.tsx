@@ -1,7 +1,7 @@
 /**
  * Workflow Designer Page — Interactive node editor with palette, canvas, and property panel
  */
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import ReactFlow, {
   Background, Controls, MiniMap,
   addEdge as rfAddEdge,
@@ -14,6 +14,7 @@ import {
   getWorkflows, getWorkflowVersion, getWorkflowStats,
   saveWorkflow, createWorkflowVersion, saveWorkflowVersion,
   updateNodePosition, updateNodeConfig,
+  addEdgeToVersion, removeEdgeFromVersion, addNodeToVersion, removeNodeFromVersion,
 } from '../../data/workflowService';
 import {
   WORKFLOW_CATEGORY_LABELS, NODE_TYPE_LABELS, WORKFLOW_NODE_TYPES,
@@ -223,7 +224,7 @@ function PropertyPanel({ node, onUpdate, onDelete }: {
 export default function WorkflowDesignerPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<WorkflowCategory | ''>('');
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>('wf-001');
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -234,6 +235,13 @@ export default function WorkflowDesignerPage() {
     [search, categoryFilter, refreshKey],
   );
 
+  // Auto-select first workflow on initial load
+  useEffect(() => {
+    if (workflows.length > 0 && selectedWorkflowId === null) {
+      setSelectedWorkflowId(workflows[0].id);
+    }
+  }, [workflows, selectedWorkflowId]);
+
   const version = useMemo(
     () => selectedWorkflowId ? getWorkflowVersion(selectedWorkflowId) : undefined,
     [selectedWorkflowId, refreshKey],
@@ -242,8 +250,8 @@ export default function WorkflowDesignerPage() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
 
-  // Sync when version changes
-  useMemo(() => {
+  // Sync nodes/edges when the active workflow version changes
+  useEffect(() => {
     if (version) {
       setNodes(toReactFlowNodes(version.nodes));
       setEdges(toReactFlowEdges(version.edges));
@@ -268,16 +276,24 @@ export default function WorkflowDesignerPage() {
 
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
     setEdges(eds => applyEdgeChanges(changes, eds));
-  }, []);
+    if (version) {
+      for (const c of changes) {
+        if (c.type === 'remove') {
+          removeEdgeFromVersion(version.id, c.id);
+        }
+      }
+    }
+  }, [version]);
 
   const onConnect = useCallback((connection: Connection) => {
     if (!version || !connection.source || !connection.target) return;
+    if (connection.source === connection.target) return;
     const edgeId = `e-${Date.now()}`;
     const newEdge: WFEdge = {
       id: edgeId, versionId: version.id,
       fromNodeId: connection.source, toNodeId: connection.target, isDefault: true,
     };
-    version.edges = [...version.edges, newEdge];
+    addEdgeToVersion(version.id, newEdge);
     setEdges(eds => rfAddEdge({ ...connection, id: edgeId, style: { stroke: '#6B7280' } }, eds));
   }, [version]);
 
@@ -293,7 +309,7 @@ export default function WorkflowDesignerPage() {
       code: type, name: NODE_TYPE_LABELS[type], config: {},
       position: { x: 300 + Math.random() * 200, y: 150 + Math.random() * 200 },
     };
-    version.nodes = [...version.nodes, newNode];
+    addNodeToVersion(version.id, newNode);
     setNodes(nds => [...nds, ...toReactFlowNodes([newNode])]);
   }, [version]);
 
@@ -305,8 +321,7 @@ export default function WorkflowDesignerPage() {
 
   const handleDeleteNode = useCallback((nodeId: string) => {
     if (!version) return;
-    version.nodes = version.nodes.filter(n => n.id !== nodeId);
-    version.edges = version.edges.filter(e => e.fromNodeId !== nodeId && e.toNodeId !== nodeId);
+    removeNodeFromVersion(version.id, nodeId);
     setNodes(nds => nds.filter(n => n.id !== nodeId));
     setEdges(eds => eds.filter(e => e.source !== nodeId && e.target !== nodeId));
     setSelectedNodeId(null);

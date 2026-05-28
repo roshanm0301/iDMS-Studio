@@ -63,8 +63,11 @@ export default function CreateCalculationPage() {
 
   const onSubmit = (data: FormValues) => {
     const calc: CalculationDefinition = {
+      // eslint-disable-next-line react-hooks/purity
       id: existing?.id || `calc-new-${Date.now()}`,
+      // eslint-disable-next-line react-hooks/purity
       ruleVersionId: existing?.ruleVersionId || `rv-new-${Date.now()}`,
+      // eslint-disable-next-line react-hooks/purity
       familyId: existing?.familyId || `rf-new-${Date.now()}`,
       name: data.name,
       description: data.description || undefined,

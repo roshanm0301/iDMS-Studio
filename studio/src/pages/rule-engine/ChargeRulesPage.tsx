@@ -135,7 +135,7 @@ export default function ChargeRulesPage() {
               <tr
                 key={rule.id}
                 style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                onClick={() => navigate(`/admin/studio/rule-engine/charge/${rule.id}`)}
+                onClick={() => navigate(`/admin/studio/rule-engine/charges/${rule.id}/edit`)}
               >
                 <td style={{ padding: '10px 12px' }}>
                   <div style={{ fontWeight: 500 }}>{master?.displayName || rule.chargeMasterId}</div>

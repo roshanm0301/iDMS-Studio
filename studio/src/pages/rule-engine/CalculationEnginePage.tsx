@@ -138,7 +138,7 @@ export default function CalculationEnginePage() {
               <tr
                 key={calc.id}
                 style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                onClick={() => navigate(`/admin/studio/rule-engine/calculation/${calc.id}`)}
+                onClick={() => navigate(`/admin/studio/rule-engine/calculations/${calc.id}/edit`)}
               >
                 <td style={{ padding: '10px 12px' }}>
                   <div style={{ fontWeight: 500 }}>{calc.name}</div>

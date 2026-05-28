@@ -47,8 +47,11 @@ export default function CreateAccountingRulePage() {
 
   const onSubmit = (data: FormValues) => {
     const rule: AccountingRuleDefinition = {
+      // eslint-disable-next-line react-hooks/purity
       id: existing?.id || `acr-new-${Date.now()}`,
+      // eslint-disable-next-line react-hooks/purity
       ruleVersionId: existing?.ruleVersionId || `rv-new-${Date.now()}`,
+      // eslint-disable-next-line react-hooks/purity
       familyId: existing?.familyId || `rf-new-${Date.now()}`,
       name: data.name,
       entityType: data.entityType,
