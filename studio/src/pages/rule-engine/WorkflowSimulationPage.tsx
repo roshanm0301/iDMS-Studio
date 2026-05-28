@@ -53,7 +53,7 @@ function runSimulation(workflowId: string): SimulationStep[] {
 
 export default function WorkflowSimulationPage() {
   const workflows = useMemo(() => getWorkflows({ category: undefined }), []);
-  const [selectedId, setSelectedId] = useState('wf-001');
+  const [selectedId, setSelectedId] = useState(() => getWorkflows({})[0]?.id || '');
   const [results, setResults] = useState<SimulationStep[] | null>(null);
   const [running, setRunning] = useState(false);
 

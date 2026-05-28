@@ -41,7 +41,7 @@ export default function ApprovalEnginePage() {
         </thead>
         <tbody>
           {policies.map(p => (
-            <tr key={p.id} style={{ borderBottom: '1px solid var(--border)' }}>
+            <tr key={p.id} style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => navigate(`/admin/studio/rule-engine/approvals/${p.id}/edit`)}>
               <td style={{ padding: '10px 12px', fontWeight: 500 }}>{p.name}</td>
               <td style={{ padding: '10px 12px', textTransform: 'capitalize' }}>{p.module}</td>
               <td style={{ padding: '10px 12px' }}>

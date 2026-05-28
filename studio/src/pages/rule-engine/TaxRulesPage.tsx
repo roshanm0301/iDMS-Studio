@@ -104,7 +104,7 @@ export default function TaxRulesPage() {
               <tr
                 key={rule.id}
                 style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
-                onClick={() => navigate(`/admin/studio/rule-engine/tax/${rule.id}`)}
+                onClick={() => navigate(`/admin/studio/rule-engine/tax/${rule.id}/edit`)}
               >
                 <td style={{ padding: '10px 12px' }}>
                   <div style={{ fontWeight: 500 }}>{rule.name}</div>

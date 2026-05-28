@@ -96,7 +96,7 @@ describe('Tax Rules Definition', () => {
     const validRate: TaxRate = {
       id: 'rate-1',
       componentId: 'comp-1',
-      regime: 'GST',
+      regime: 'gst',
       rate: 9,
       effectiveFrom: '2026-01-01',
       hsnSac: '8703',
