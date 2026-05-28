@@ -30,6 +30,28 @@ const UIStudioRuntimePreviewPage = lazy(() =>
   import('./pages/ui-studio/UIStudioRuntimePreviewPage').then(m => ({ default: m.UIStudioRuntimePreviewPage }))
 );
 
+// Rule Engine pages (lazy-loaded)
+const RuleRegistryPage = lazy(() => import('./pages/rule-engine/RuleRegistryPage'));
+const RuleDetailPage = lazy(() => import('./pages/rule-engine/RuleDetailPage'));
+const ExpressionEditorPage = lazy(() => import('./pages/rule-engine/ExpressionEditorPage'));
+const ValidationRulesPage = lazy(() => import('./pages/rule-engine/ValidationRulesPage'));
+const CalculationEnginePage = lazy(() => import('./pages/rule-engine/CalculationEnginePage'));
+const ChargeRulesPage = lazy(() => import('./pages/rule-engine/ChargeRulesPage'));
+const TaxRulesPage = lazy(() => import('./pages/rule-engine/TaxRulesPage'));
+const AccountingRulesPage = lazy(() => import('./pages/rule-engine/AccountingRulesPage'));
+const FinancialOrchestrationPage = lazy(() => import('./pages/rule-engine/FinancialOrchestrationPage'));
+const WorkflowDesignerPage = lazy(() => import('./pages/rule-engine/WorkflowDesignerPage'));
+const ApprovalEnginePage = lazy(() => import('./pages/rule-engine/ApprovalEnginePage'));
+const WorkflowSimulationPage = lazy(() => import('./pages/rule-engine/WorkflowSimulationPage'));
+
+// Create/Edit form pages
+const CreateValidationRulePage = lazy(() => import('./pages/rule-engine/CreateValidationRulePage'));
+const CreateCalculationPage = lazy(() => import('./pages/rule-engine/CreateCalculationPage'));
+const CreateChargeRulePage = lazy(() => import('./pages/rule-engine/CreateChargeRulePage'));
+const CreateTaxRulePage = lazy(() => import('./pages/rule-engine/CreateTaxRulePage'));
+const CreateAccountingRulePage = lazy(() => import('./pages/rule-engine/CreateAccountingRulePage'));
+const CreateApprovalPolicyPage = lazy(() => import('./pages/rule-engine/CreateApprovalPolicyPage'));
+
 const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } } });
 
 const PageLoader = () => (
@@ -74,6 +96,85 @@ function App() {
                 <p className="empty-title">Settings</p>
                 <p className="empty-desc">Platform settings coming soon.</p>
               </div>
+            } />
+
+            {/* Rule Engine */}
+            <Route path="rule-engine" element={
+              <Suspense fallback={<PageLoader />}><RuleRegistryPage /></Suspense>
+            } />
+            <Route path="rule-engine/:familyId" element={
+              <Suspense fallback={<PageLoader />}><RuleDetailPage /></Suspense>
+            } />
+            <Route path="rule-engine/expression/:expressionId" element={
+              <Suspense fallback={<PageLoader />}><ExpressionEditorPage /></Suspense>
+            } />
+            <Route path="rule-engine/expression/new" element={
+              <Suspense fallback={<PageLoader />}><ExpressionEditorPage /></Suspense>
+            } />
+            <Route path="rule-engine/validations" element={
+              <Suspense fallback={<PageLoader />}><ValidationRulesPage /></Suspense>
+            } />
+            <Route path="rule-engine/calculations" element={
+              <Suspense fallback={<PageLoader />}><CalculationEnginePage /></Suspense>
+            } />
+            <Route path="rule-engine/charges" element={
+              <Suspense fallback={<PageLoader />}><ChargeRulesPage /></Suspense>
+            } />
+            <Route path="rule-engine/tax" element={
+              <Suspense fallback={<PageLoader />}><TaxRulesPage /></Suspense>
+            } />
+            <Route path="rule-engine/accounting" element={
+              <Suspense fallback={<PageLoader />}><AccountingRulesPage /></Suspense>
+            } />
+            <Route path="rule-engine/orchestration" element={
+              <Suspense fallback={<PageLoader />}><FinancialOrchestrationPage /></Suspense>
+            } />
+            <Route path="rule-engine/workflows" element={
+              <Suspense fallback={<PageLoader />}><WorkflowDesignerPage /></Suspense>
+            } />
+            <Route path="rule-engine/approvals" element={
+              <Suspense fallback={<PageLoader />}><ApprovalEnginePage /></Suspense>
+            } />
+            <Route path="rule-engine/simulation" element={
+              <Suspense fallback={<PageLoader />}><WorkflowSimulationPage /></Suspense>
+            } />
+
+            {/* Rule Engine — Create/Edit forms */}
+            <Route path="rule-engine/validations/new" element={
+              <Suspense fallback={<PageLoader />}><CreateValidationRulePage /></Suspense>
+            } />
+            <Route path="rule-engine/validations/:ruleId/edit" element={
+              <Suspense fallback={<PageLoader />}><CreateValidationRulePage /></Suspense>
+            } />
+            <Route path="rule-engine/calculations/new" element={
+              <Suspense fallback={<PageLoader />}><CreateCalculationPage /></Suspense>
+            } />
+            <Route path="rule-engine/calculations/:calcId/edit" element={
+              <Suspense fallback={<PageLoader />}><CreateCalculationPage /></Suspense>
+            } />
+            <Route path="rule-engine/charges/new" element={
+              <Suspense fallback={<PageLoader />}><CreateChargeRulePage /></Suspense>
+            } />
+            <Route path="rule-engine/charges/:ruleId/edit" element={
+              <Suspense fallback={<PageLoader />}><CreateChargeRulePage /></Suspense>
+            } />
+            <Route path="rule-engine/tax/new" element={
+              <Suspense fallback={<PageLoader />}><CreateTaxRulePage /></Suspense>
+            } />
+            <Route path="rule-engine/tax/:ruleId/edit" element={
+              <Suspense fallback={<PageLoader />}><CreateTaxRulePage /></Suspense>
+            } />
+            <Route path="rule-engine/accounting/new" element={
+              <Suspense fallback={<PageLoader />}><CreateAccountingRulePage /></Suspense>
+            } />
+            <Route path="rule-engine/accounting/:ruleId/edit" element={
+              <Suspense fallback={<PageLoader />}><CreateAccountingRulePage /></Suspense>
+            } />
+            <Route path="rule-engine/approvals/new" element={
+              <Suspense fallback={<PageLoader />}><CreateApprovalPolicyPage /></Suspense>
+            } />
+            <Route path="rule-engine/approvals/:policyId/edit" element={
+              <Suspense fallback={<PageLoader />}><CreateApprovalPolicyPage /></Suspense>
             } />
           </Route>
 

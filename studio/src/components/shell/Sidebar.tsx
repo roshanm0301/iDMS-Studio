@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Box, Package, Settings, ChevronDown,
-  PanelLeftClose, PanelLeftOpen, BookOpen, Database, GitFork, Layers
+  PanelLeftClose, PanelLeftOpen, BookOpen, Database, GitFork, Layers, Zap
 } from 'lucide-react';
 import { useStudioStore } from '../../hooks/useStudioStore';
 import { getArtifacts } from '../../data/mockService';
@@ -11,6 +11,7 @@ const NAV = [
   { id: '/admin/studio/artifacts', icon: Box, label: 'Artifacts', shortcut: 'G A', badgeKey: 'artifacts' },
   { id: '/admin/studio/entities', icon: Database, label: 'Entity Designer', shortcut: 'G E' },
   { id: '/admin/studio/relationships', icon: GitFork, label: 'Relationships', shortcut: 'G L' },
+  { id: '/admin/studio/rule-engine', icon: Zap, label: 'Rule Engine', shortcut: 'G W' },
   { id: '/admin/studio/releases', icon: Package, label: 'Release Packages', shortcut: 'G R', badgeKey: 'releases' },
   { id: '/admin/studio/attributes', icon: BookOpen, label: 'Attribute Catalog', shortcut: 'G C' },
   { id: '/admin/ui-studio', icon: Layers, label: 'UI Studio', shortcut: 'G U' },
