@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Zap, Plus, Search, ArrowRight, Filter,
   CheckCircle2, Clock, FileEdit, Archive, XCircle, Eye, Send,
+  ShieldCheck, Calculator, Receipt, Landmark, BookCheck, GitBranch, Users,
 } from 'lucide-react';
 import { getRuleFamilies, getRuleEngineStats } from '../../data/ruleEngineService';
 import { useRuleEngineStore } from '../../hooks/useRuleEngineStore';
@@ -70,11 +71,45 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+// ── Sub-Engine Navigation ─────────────────────────────────────
+const SUB_ENGINES = [
+  { path: '/admin/studio/rule-engine/validations', label: 'Validations', icon: ShieldCheck },
+  { path: '/admin/studio/rule-engine/calculations', label: 'Calculations', icon: Calculator },
+  { path: '/admin/studio/rule-engine/charges', label: 'Charges', icon: Receipt },
+  { path: '/admin/studio/rule-engine/tax', label: 'Tax', icon: Landmark },
+  { path: '/admin/studio/rule-engine/accounting', label: 'Accounting', icon: BookCheck },
+  { path: '/admin/studio/rule-engine/workflows', label: 'Workflows', icon: GitBranch },
+  { path: '/admin/studio/rule-engine/approvals', label: 'Approvals', icon: Users },
+];
+
+const NEW_RULE_OPTIONS = [
+  { path: '/admin/studio/rule-engine/validations/new', label: 'Validation Rule' },
+  { path: '/admin/studio/rule-engine/calculations/new', label: 'Calculation Rule' },
+  { path: '/admin/studio/rule-engine/charges/new', label: 'Charge / Discount Rule' },
+  { path: '/admin/studio/rule-engine/tax/new', label: 'Tax Rule' },
+  { path: '/admin/studio/rule-engine/accounting/new', label: 'Accounting Rule' },
+  { path: '/admin/studio/rule-engine/approvals/new', label: 'Approval Policy' },
+];
+
 // ── Component ─────────────────────────────────────────────────
 export default function RuleRegistryPage() {
   const navigate = useNavigate();
-  const { filters, setFilter, setShowCreateDialog } = useRuleEngineStore();
+  const { filters, setFilter } = useRuleEngineStore();
   const stats = useMemo(() => getRuleEngineStats(), []);
+  const [showNewMenu, setShowNewMenu] = useState(false);
+  const newMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showNewMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (newMenuRef.current && !newMenuRef.current.contains(e.target as Node)) {
+        setShowNewMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showNewMenu]);
 
   const entries = useMemo(() => {
     return getRuleFamilies({
@@ -107,12 +142,53 @@ export default function RuleRegistryPage() {
               {stats.totalFamilies} rule families · {stats.publishedCount} published · {stats.draftCount} drafts · {stats.inReviewCount} in review
             </div>
           </div>
-          <div className="row" style={{ gap: 8 }}>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowCreateDialog(true)}>
+          <div className="row" style={{ gap: 8, position: 'relative' }} ref={newMenuRef}>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowNewMenu(v => !v)}>
               <Plus size={14} /> New Rule
             </button>
+            {showNewMenu && (
+              <div style={{
+                position: 'absolute', top: '100%', right: 0, marginTop: 4,
+                background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e5e7eb)',
+                borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100,
+                minWidth: 220, padding: '6px 0',
+              }}>
+                {NEW_RULE_OPTIONS.map(opt => (
+                  <div
+                    key={opt.path}
+                    onClick={() => { navigate(opt.path); setShowNewMenu(false); }}
+                    style={{
+                      padding: '8px 16px', cursor: 'pointer', fontSize: 13,
+                      transition: 'background 0.1s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--hover-bg, #f3f4f6)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    {opt.label}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
+      </div>
+
+      {/* Sub-Engine Navigation Tabs */}
+      <div style={{ display: 'flex', gap: 6, padding: '0 24px 16px', flexWrap: 'wrap' }}>
+        {SUB_ENGINES.map(eng => {
+          const Icon = eng.icon;
+          return (
+            <button
+              key={eng.path}
+              className="btn btn-secondary btn-sm"
+              onClick={() => navigate(eng.path)}
+              style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <Icon size={14} />
+              {eng.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Stats bar */}

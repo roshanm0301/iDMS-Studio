@@ -178,7 +178,7 @@ export default function ValidationRulesPage() {
                 </td>
                 <td style={{ padding: '10px 12px', fontSize: 11 }}>{rule.entityType}</td>
                 <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                  {rule.nonOverridable && <Shield size={12} color="#991B1B" title="Non-overridable" />}
+                  {rule.nonOverridable && <span title="Non-overridable"><Shield size={12} color="#991B1B" /></span>}
                 </td>
               </tr>
             );

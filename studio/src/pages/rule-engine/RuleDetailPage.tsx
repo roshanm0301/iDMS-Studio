@@ -107,7 +107,7 @@ export default function RuleDetailPage() {
 
     // RULE-UI-010: Require confirmation for publish/retire/rollback
     const requiresConfirmation = toState === 'published' || toState === 'retired' ||
-      (selectedVersion.lifecycleState === 'retired' && toState === 'published');
+      selectedVersion.lifecycleState === 'retired';
     if (requiresConfirmation) {
       const actionLabel = toState === 'retired' ? 'retire' : 'publish';
       const confirmed = window.confirm(

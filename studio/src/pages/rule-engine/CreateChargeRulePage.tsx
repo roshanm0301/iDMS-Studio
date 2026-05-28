@@ -37,7 +37,7 @@ export default function CreateChargeRulePage() {
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormValues>({
     defaultValues: existing ? {
-      name: existing.name,
+      name: (existing as any).displayName || '',
       chargeMasterId: existing.chargeMasterId,
       calculationMethod: existing.calculationMethod,
       fixedAmount: existing.fixedAmount || 0,
@@ -58,39 +58,44 @@ export default function CreateChargeRulePage() {
   });
 
   const method = watch('calculationMethod');
-  const [slabs, setSlabs] = useState<SlabTier[]>(existing?.slabTiers || []);
+  const [slabs, setSlabs] = useState<SlabTier[]>(existing?.slabs || []);
   const [saved, setSaved] = useState(false);
 
-  const addSlab = () => setSlabs([...slabs, { from: 0, to: 0, value: 0, valueType: 'percentage' }]);
+  const addSlab = () => setSlabs([...slabs, { fromValue: 0, toValue: 0, value: 0, calculationMethod: 'percentage' }]);
   const removeSlab = (i: number) => setSlabs(slabs.filter((_, j) => j !== i));
   const updateSlab = (i: number, field: keyof SlabTier, val: number | string) => {
     const arr = [...slabs];
-    (arr[i] as any)[field] = field === 'valueType' ? val : Number(val);
+    (arr[i] as any)[field] = field === 'calculationMethod' ? val : Number(val);
     setSlabs(arr);
   };
 
   const onSubmit = (data: FormValues) => {
-    const rule: ChargeRuleVersion = {
+    const rule = {
       id: existing?.id || `cr-new-${Date.now()}`,
       ruleVersionId: existing?.ruleVersionId || `rv-new-${Date.now()}`,
       familyId: existing?.familyId || `rf-new-${Date.now()}`,
       chargeMasterId: data.chargeMasterId,
-      name: data.name,
+      entityType: 'general',
       calculationMethod: data.calculationMethod,
       fixedAmount: data.calculationMethod === 'fixed_amount' ? data.fixedAmount : undefined,
       percentage: data.calculationMethod === 'percentage' ? data.percentage : undefined,
       formulaExpression: data.calculationMethod === 'formula' ? data.formulaExpression : undefined,
-      slabTiers: data.calculationMethod === 'slab_tier' ? slabs : undefined,
+      slabs: data.calculationMethod === 'slab_tier' ? slabs : undefined,
       taxTiming: data.taxTiming,
+      taxability: 'taxable' as const,
       conflictStrategy: data.conflictStrategy,
       scope: data.scope,
       priority: data.priority,
+      sequence: data.priority,
+      deviationPolicy: 'not_allowed' as const,
+      precision: 2,
+      roundingMode: 'round_half_up' as const,
       effectiveFrom: data.effectiveFrom || undefined,
       effectiveTo: data.effectiveTo || undefined,
       createdBy: 'admin',
       createdAt: existing?.createdAt || new Date().toISOString(),
-    };
-    saveChargeRule(rule);
+    } satisfies Omit<ChargeRuleVersion, 'documentType'>;
+    saveChargeRule(rule as ChargeRuleVersion);
     setSaved(true);
     setTimeout(() => navigate('/admin/studio/rule-engine/charges'), 600);
   };
@@ -173,13 +178,13 @@ export default function CreateChargeRulePage() {
               <tbody>
                 {slabs.map((s, i) => (
                   <tr key={i}>
-                    <td style={{ padding: 2 }}><input type="number" value={s.from} onChange={e => updateSlab(i, 'from', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
-                    <td style={{ padding: 2 }}><input type="number" value={s.to} onChange={e => updateSlab(i, 'to', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
+                    <td style={{ padding: 2 }}><input type="number" value={s.fromValue} onChange={e => updateSlab(i, 'fromValue', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
+                    <td style={{ padding: 2 }}><input type="number" value={s.toValue ?? ''} onChange={e => updateSlab(i, 'toValue', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
                     <td style={{ padding: 2 }}><input type="number" step="0.01" value={s.value} onChange={e => updateSlab(i, 'value', e.target.value)} style={{ width: 70, fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }} /></td>
                     <td style={{ padding: 2 }}>
-                      <select value={s.valueType} onChange={e => updateSlab(i, 'valueType', e.target.value)} style={{ fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }}>
+                      <select value={s.calculationMethod} onChange={e => updateSlab(i, 'calculationMethod', e.target.value)} style={{ fontSize: 11, padding: '4px 6px', borderRadius: 4, border: '1px solid var(--border)' }}>
                         <option value="percentage">%</option>
-                        <option value="fixed">Fixed</option>
+                        <option value="fixed_amount">Fixed</option>
                       </select>
                     </td>
                     <td style={{ padding: 2 }}><button type="button" onClick={() => removeSlab(i)} style={{ border: 'none', cursor: 'pointer', background: 'none' }}><Trash2 size={12} color="#EF4444" /></button></td>
